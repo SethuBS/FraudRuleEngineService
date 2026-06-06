@@ -108,6 +108,7 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Critical risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_CRITICAL` | `75` |
 | Review decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW` | `MEDIUM` |
 | Flagged decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED` | `HIGH` |
+| Application clock zone | `FRAUD_TIME_ZONE_ID` | `UTC` |
 
 ## Docker
 
@@ -136,7 +137,30 @@ The target service is an OAuth2 Resource Server. It validates JWT bearer tokens 
 
 ## API Examples
 
-Reviewer-facing API examples will be added when the Sprint 2 API cards are implemented.
+Transaction evaluation accepts a stable categorized transaction contract. Fraud rules can change internally without changing the request shape or the generic matched-rule response list.
+
+```http
+POST /api/v1/transaction-evaluations
+Content-Type: application/json
+```
+
+```json
+{
+  "eventId": "event-1",
+  "transactionId": "tx-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-1",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-1"
+}
+```
 
 ## Design Trade-Offs
 
