@@ -27,12 +27,18 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(TransactionEvaluationController.class)
+@TestPropertySource(properties = {
+    "fraud.api.paths.transaction-evaluations=/test/transaction-evaluations",
+    "fraud.api.validation.merchant-category-max-length=8"
+})
 class TransactionEvaluationControllerTest
 {
 
@@ -40,6 +46,9 @@ class TransactionEvaluationControllerTest
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Value("${fraud.api.paths.transaction-evaluations}")
+    private String transactionEvaluationsPath;
 
     @MockitoBean
     private TransactionEvaluationService transactionEvaluationService;
@@ -49,7 +58,7 @@ class TransactionEvaluationControllerTest
     void invalidRequestReturnsBadRequest()
             throws Exception
     {
-        mockMvc.perform(post(ApiPaths.TRANSACTION_EVALUATIONS)
+        mockMvc.perform(post(transactionEvaluationsPath)
                         .with(csrf())
                         .contentType(APPLICATION_JSON)
                         .content("{}"))
@@ -73,7 +82,7 @@ class TransactionEvaluationControllerTest
     void invalidAmountAndCurrencyReturnBadRequest()
             throws Exception
     {
-        mockMvc.perform(post(ApiPaths.TRANSACTION_EVALUATIONS)
+        mockMvc.perform(post(transactionEvaluationsPath)
                         .with(csrf())
                         .contentType(APPLICATION_JSON)
                         .content("""
@@ -90,6 +99,32 @@ class TransactionEvaluationControllerTest
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[*].field", containsInAnyOrder("amount", "currency")));
+
+        verifyNoInteractions(transactionEvaluationService);
+    }
+
+    @Test
+    @WithMockUser
+    void invalidMerchantCategoryLengthReturnsBadRequest()
+            throws Exception
+    {
+        mockMvc.perform(post(transactionEvaluationsPath)
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "eventId": "event-1",
+                                  "transactionId": "tx-1",
+                                  "customerId": "customer-1",
+                                  "accountId": "account-1",
+                                  "amount": 100.50,
+                                  "currency": "ZAR",
+                                  "transactionTimestamp": "2026-06-07T08:00:00Z",
+                                  "merchantCategory": "grocery-store"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[*].field", containsInAnyOrder("merchantCategory")));
 
         verifyNoInteractions(transactionEvaluationService);
     }
@@ -115,7 +150,7 @@ class TransactionEvaluationControllerTest
                     EVALUATED_AT);
         });
 
-        mockMvc.perform(post(ApiPaths.TRANSACTION_EVALUATIONS)
+        mockMvc.perform(post(transactionEvaluationsPath)
                         .with(csrf())
                         .contentType(APPLICATION_JSON)
                         .content("""
