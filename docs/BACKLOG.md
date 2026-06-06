@@ -30,3 +30,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S1.01` | Model transaction, fraud decision, alert, and rule evaluation domain | `P0 Critical` | `Sprint 1`, `Backend`, `Architecture` | 7 June 2026 | 3h | Implemented on `feature/s1-01-domain-model` |
 | `S1.02` | Define transaction evaluation API contract and validation rules | `P0 Critical` | `Sprint 1`, `API`, `Backend`, `Security` | 7 June 2026 | 3h | Implemented on `feature/s1-02-evaluation-api-contract` |
 | `S1.03` | Create PostgreSQL schema with Flyway migrations | `P0 Critical` | `Sprint 1`, `Database`, `Reliability` | 8 June 2026 | 4h | Implemented on `feature/s1-03-postgresql-schema` |
+| `S1.04` | Implement JPA entities, repositories, and mapping layer | `P0 Critical` | `Sprint 1`, `Backend`, `Database` | 8 June 2026 | 5h | Implemented on `feature/s1-04-jpa-persistence` |
