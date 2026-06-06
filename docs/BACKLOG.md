@@ -22,3 +22,9 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 - Package responsibilities are documented in [architecture.md](architecture.md).
 - Repository hygiene is represented by `.gitignore`, `.dockerignore`, `docs/`, `examples/`, `scripts/`, and `config/dependency-check/`.
 - Gradle, Spring Boot, Java, Dependency-Check, Testcontainers, PostgreSQL, Flyway, and OpenAPI dependency choices are represented in `build.gradle`.
+
+## Sprint 1 Cards
+
+| Card | Title | Priority | Labels | Due | Estimate | Local status |
+| --- | --- | --- | --- | --- | ---: | --- |
+| `S1.01` | Model transaction, fraud decision, alert, and rule evaluation domain | `P0 Critical` | `Sprint 1`, `Backend`, `Architecture` | 7 June 2026 | 3h | Implemented on `feature/s1-01-domain-model` |

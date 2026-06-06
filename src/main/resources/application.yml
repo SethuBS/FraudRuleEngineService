@@ -28,3 +28,13 @@ management:
 
 server:
   port: ${SERVER_PORT:8080}
+
+fraud:
+  evaluation:
+    risk-thresholds:
+      medium: ${FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM:25}
+      high: ${FRAUD_EVALUATION_RISK_THRESHOLD_HIGH:50}
+      critical: ${FRAUD_EVALUATION_RISK_THRESHOLD_CRITICAL:75}
+    decision-thresholds:
+      review: ${FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW:MEDIUM}
+      flagged: ${FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED:HIGH}
