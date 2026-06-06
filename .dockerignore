@@ -1,0 +1,15 @@
+.git
+.gradle
+build
+out
+.idea
+.vscode
+*.iml
+.local
+dev-secrets
+secrets
+*.pem
+*.key
+*.log
+reports
+data

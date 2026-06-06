@@ -1,0 +1,24 @@
+# Backlog Snapshot
+
+This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Planned work starts in `Backlog`; cards move right only as work progresses.
+
+## Sprint 0 Cards
+
+| Card | Title | Priority | Labels | Due | Estimate | Local status |
+| --- | --- | --- | --- | --- | ---: | --- |
+| `DOD.01` | Define production-grade Definition of Done | `P0 Critical` | `Sprint 0`, `Process`, `Architecture` | 6 June 2026 | 1h | Implemented in docs |
+| `DOD.02` | Configure project board labels and workflow | `P0 Critical` | `Sprint 0`, `Process` | 6 June 2026 | 1h | Documented for Trello setup |
+| `S0.01` | Finalise project scope and non-goals | `P0 Critical` | `Sprint 0`, `Architecture`, `Documentation` | 6 June 2026 | 1.5h | Implemented in docs |
+| `S0.02` | Prepare GitHub repository and project hygiene | `P0 Critical` | `Sprint 0`, `DevOps`, `Documentation` | 6 June 2026 | 1.5h | Local repo scaffolded and initial commit created |
+| `S0.03` | Verify Gradle and Spring Boot baseline | `P0 Critical` | `Sprint 0`, `Backend`, `DevOps` | 6 June 2026 | 2h | Verified with `clean test`, `bootJar`, and local health startup |
+| `S0.04` | Create package structure and architecture guardrails | `P0 Critical` | `Sprint 0`, `Architecture`, `Backend` | 6 June 2026 | 2h | Package guardrails added |
+| `S0.05` | Create reviewer-first README skeleton | `P1 High` | `Sprint 0`, `Documentation` | 6 June 2026 | 1.5h | README skeleton added |
+
+## Sprint 0 Acceptance Notes
+
+- The Definition of Done exists in [DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md).
+- Board labels and workflow are documented in [PROJECT_BOARD.md](PROJECT_BOARD.md).
+- Scope and non-goals are documented in [PROJECT_SCOPE.md](PROJECT_SCOPE.md).
+- Package responsibilities are documented in [architecture.md](architecture.md).
+- Repository hygiene is represented by `.gitignore`, `.dockerignore`, `docs/`, `examples/`, `scripts/`, and `config/dependency-check/`.
+- Gradle, Spring Boot, Java, Dependency-Check, Testcontainers, PostgreSQL, Flyway, and OpenAPI dependency choices are represented in `build.gradle`.
