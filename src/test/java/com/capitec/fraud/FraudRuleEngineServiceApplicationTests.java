@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-class FraudRuleEngineServiceApplicationTests {
+class FraudRuleEngineServiceApplicationTests
+{
 
     @Test
-    void applicationEntryPointExists() {
+    void applicationEntryPointExists()
+    {
         assertThat(FraudRuleEngineServiceApplication.class).isNotNull();
     }
 }

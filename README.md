@@ -71,16 +71,43 @@ This section will be completed as the implementation moves through Sprint 1 and 
 Current baseline checks:
 
 ```powershell
-.\gradlew.bat clean test
+.\gradlew.bat clean check
 .\gradlew.bat bootJar
 ```
 
 On Bash or PowerShell Core:
 
 ```bash
-./gradlew clean test
+./gradlew clean check
 ./gradlew bootJar
 ```
+
+## Code Style
+
+Java formatting is enforced in the repository through `.editorconfig`, Checkstyle, and the CI `clean check` job. Use four spaces, no tabs, grouped imports, and next-line opening braces for classes, records, constructors, and methods:
+
+```java
+public class RuleController
+{
+
+    public List<RuleDefinitionResponse> rules()
+    {
+        return ruleCatalogService.activeRules();
+    }
+}
+```
+
+## Configuration
+
+Fraud evaluation thresholds are runtime configuration, not domain constants. The defaults live in `application.yml` and can be overridden by environment variables:
+
+| Setting | Environment variable | Default |
+| --- | --- | --- |
+| Medium risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM` | `25` |
+| High risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH` | `50` |
+| Critical risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_CRITICAL` | `75` |
+| Review decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW` | `MEDIUM` |
+| Flagged decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED` | `HIGH` |
 
 ## Docker
 
