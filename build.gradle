@@ -6,13 +6,27 @@ plugins {
 }
 
 group = 'com.capitec'
-version = '0.1.0-SNAPSHOT'
+version = '0.0.1-SNAPSHOT'
+description = 'Fraud Rule Engine Service API modular monolith scaffold'
 
 ext['testcontainers.version'] = '1.21.4'
+
+base {
+    archivesName = 'fraud-rule-engine-service'
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.named('bootJar') {
+    manifest {
+        attributes(
+                'Implementation-Title': 'Fraud Rule Engine Service API',
+                'Implementation-Version': project.version
+        )
+    }
 }
 
 dependencies {
