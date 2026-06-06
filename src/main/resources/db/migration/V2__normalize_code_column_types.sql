@@ -1,0 +1,3 @@
+ALTER TABLE transactions
+    ALTER COLUMN currency TYPE VARCHAR(3),
+    ALTER COLUMN country TYPE VARCHAR(2);

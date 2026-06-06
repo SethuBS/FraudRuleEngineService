@@ -45,3 +45,7 @@ fraud:
     decision-thresholds:
       review: ${FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW:MEDIUM}
       flagged: ${FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED:HIGH}
+  persistence:
+    default-alert-status: ${FRAUD_PERSISTENCE_DEFAULT_ALERT_STATUS:OPEN}
+  security:
+    public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**}
