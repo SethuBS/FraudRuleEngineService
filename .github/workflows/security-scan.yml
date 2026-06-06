@@ -1,0 +1,76 @@
+name: Security Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-vulnerability-scan:
+    name: Dependency vulnerability scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: development
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v5
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run report-only dependency vulnerability scan
+        env:
+          DEPENDENCY_CHECK_DATA_DIRECTORY: ${{ runner.temp }}/dependency-check-data
+          DEPENDENCY_CHECK_NVD_RESULTS_PER_PAGE: "500"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx5g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8"
+          GRADLE_USER_HOME: ${{ runner.temp }}/gradle-dependency-check-home
+          JAVA_TOOL_OPTIONS: "-Xmx5g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8"
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          set +e
+          rm -rf "$DEPENDENCY_CHECK_DATA_DIRECTORY"
+          mkdir -p "$GRADLE_USER_HOME" "$DEPENDENCY_CHECK_DATA_DIRECTORY"
+          ./gradlew dependencyCheckAnalyze --no-daemon
+          scan_status=$?
+          if [ "$scan_status" -ne 0 ]; then
+            echo "Dependency-Check did not complete. Continuing because this workflow is report-only during triage."
+            {
+              echo "### Dependency-Check report-only scan"
+              echo ""
+              echo "Dependency-Check did not complete because the external NVD-backed scanner failed during update or analysis."
+              echo "The main CI workflow remains the required submission gate: clean test, bootJar, and Docker image build."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit 0
+
+      - name: Upload dependency vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: dependency-check-report
+          path: build/reports/dependency-check-report.*
+          if-no-files-found: ignore

@@ -1,0 +1,108 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - java
+    groups:
+      spring:
+        patterns:
+          - org.springframework.boot*
+          - io.spring.dependency-management*
+      springdoc-openapi:
+        patterns:
+          - org.springdoc*
+          - io.swagger.core.v3*
+      testcontainers:
+        patterns:
+          - org.testcontainers*
+    ignore:
+      - dependency-name: gradle
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+      - dependency-name: gradle-wrapper
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+      - dependency-name: org.springframework.boot
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+      - dependency-name: io.spring.dependency-management
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+      - dependency-name: org.springdoc:*
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+      - dependency-name: org.testcontainers:*
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:15"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: docker
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - docker
+    ignore:
+      - dependency-name: gradle
+        update-types:
+          - version-update:semver-major
+      - dependency-name: eclipse-temurin
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: docker-compose
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:45"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - docker
+    ignore:
+      - dependency-name: postgres
+        update-types:
+          - version-update:semver-major
