@@ -30,6 +30,8 @@ server:
   port: ${SERVER_PORT:8080}
 
 fraud:
+  time:
+    zone-id: ${FRAUD_TIME_ZONE_ID:UTC}
   evaluation:
     risk-thresholds:
       medium: ${FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM:25}

@@ -28,3 +28,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | Card | Title | Priority | Labels | Due | Estimate | Local status |
 | --- | --- | --- | --- | --- | ---: | --- |
 | `S1.01` | Model transaction, fraud decision, alert, and rule evaluation domain | `P0 Critical` | `Sprint 1`, `Backend`, `Architecture` | 7 June 2026 | 3h | Implemented on `feature/s1-01-domain-model` |
+| `S1.02` | Define transaction evaluation API contract and validation rules | `P0 Critical` | `Sprint 1`, `API`, `Backend`, `Security` | 7 June 2026 | 3h | Implemented on `feature/s1-02-evaluation-api-contract` |
