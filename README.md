@@ -103,6 +103,8 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 
 | Setting | Environment variable | Default |
 | --- | --- | --- |
+| Transaction evaluation API path | `FRAUD_API_PATH_TRANSACTION_EVALUATIONS` | `/api/v1/transaction-evaluations` |
+| Merchant category maximum length | `FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH` | `80` |
 | Medium risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM` | `25` |
 | High risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH` | `50` |
 | Critical risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_CRITICAL` | `75` |

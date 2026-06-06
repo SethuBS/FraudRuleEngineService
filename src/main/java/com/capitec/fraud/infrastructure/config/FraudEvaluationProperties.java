@@ -5,8 +5,8 @@ import com.capitec.fraud.domain.RiskPolicy;
 import com.capitec.fraud.domain.RiskScore;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -28,9 +28,9 @@ public record FraudEvaluationProperties(
     }
 
     public record RiskThresholds(
-            @NotNull @Min(0) Integer medium,
-            @NotNull @Min(0) Integer high,
-            @NotNull @Min(0) Integer critical)
+            @NotNull @PositiveOrZero Integer medium,
+            @NotNull @PositiveOrZero Integer high,
+            @NotNull @PositiveOrZero Integer critical)
     {
     }
 

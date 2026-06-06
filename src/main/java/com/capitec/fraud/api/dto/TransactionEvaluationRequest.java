@@ -1,6 +1,7 @@
 package com.capitec.fraud.api.dto;
 
 import com.capitec.fraud.api.validation.IsoCurrencyCode;
+import com.capitec.fraud.api.validation.MerchantCategoryCode;
 import com.capitec.fraud.domain.Money;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionCategory;
@@ -20,7 +21,7 @@ public record TransactionEvaluationRequest(
         @NotNull @Positive BigDecimal amount,
         @NotBlank @IsoCurrencyCode String currency,
         @NotNull Instant transactionTimestamp,
-        @NotBlank String merchantCategory,
+        @NotBlank @MerchantCategoryCode String merchantCategory,
         String country,
         String channel,
         String merchantId,
