@@ -109,6 +109,7 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Review decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW` | `MEDIUM` |
 | Flagged decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED` | `HIGH` |
 | Application clock zone | `FRAUD_TIME_ZONE_ID` | `UTC` |
+| Test PostgreSQL image | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image` | `postgres:16-alpine` |
 
 ## Docker
 
@@ -117,6 +118,12 @@ Docker runtime is part of the Definition of Done. The baseline Docker assets are
 ```bash
 docker compose up --build
 ```
+
+## Database
+
+Flyway migrations live in `src/main/resources/db/migration`. `V1__create_schema.sql` creates the core PostgreSQL schema for idempotent event processing, transaction storage, fraud alert retrieval, rule catalog metadata, and auditable rule evaluation rows.
+
+Raw payload storage is intentionally sanitized and retention-ready: tables that may hold payload snapshots include `sanitized_raw_payload` and `raw_payload_expires_at`, while the retention duration itself is not fixed in the schema.
 
 ## Testing
 
