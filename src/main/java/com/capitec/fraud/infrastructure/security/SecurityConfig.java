@@ -39,7 +39,10 @@ public class SecurityConfig
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ApiSecurityErrorHandler apiSecurityErrorHandler)
+            throws Exception
     {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -54,7 +57,13 @@ public class SecurityConfig
                         .requestMatchers(properties.actuatorReadPathMatchers()).hasAuthority(properties.actuatorReadAuthority())
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(apiSecurityErrorHandler)
+                        .accessDeniedHandler(apiSecurityErrorHandler))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .authenticationEntryPoint(apiSecurityErrorHandler)
+                        .accessDeniedHandler(apiSecurityErrorHandler)
+                        .jwt(withDefaults()))
                 .build();
     }
 

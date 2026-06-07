@@ -5,8 +5,12 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.capitec.fraud.api.ApiCorrelationIdProvider;
+import com.capitec.fraud.infrastructure.config.FraudApiConfiguration;
 import com.capitec.fraud.infrastructure.config.FraudSecurityConfiguration;
 
 import org.junit.jupiter.api.Test;
@@ -27,7 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @WebMvcTest(SecurityConfigTest.SecurityTestController.class)
 @Import({
+    FraudApiConfiguration.class,
     FraudSecurityConfiguration.class,
+    ApiCorrelationIdProvider.class,
+    ApiSecurityErrorHandler.class,
     FraudSecurityAuthorizer.class,
     SecurityConfig.class,
     SecurityConfigTest.SecurityTestController.class
@@ -53,6 +60,8 @@ import org.springframework.web.bind.annotation.RestController;
 class SecurityConfigTest
 {
 
+    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_ID = "security-correlation-id";
     private static final String TRANSACTION_EVALUATE_AUTHORITY = "SCOPE_transactions:evaluate";
     private static final String FRAUD_ALERTS_READ_AUTHORITY = "SCOPE_fraud-alerts:read";
     private static final String RULES_READ_AUTHORITY = "SCOPE_rules:read";
@@ -70,8 +79,15 @@ class SecurityConfigTest
     void requestWithoutTokenReturnsUnauthorized()
             throws Exception
     {
-        mockMvc.perform(get("/api/v1/fraud-alerts"))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1/fraud-alerts")
+                        .header(CORRELATION_HEADER, CORRELATION_ID))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
+                .andExpect(jsonPath("$.message").value("Authentication is required"))
+                .andExpect(jsonPath("$.correlationId").value(CORRELATION_ID))
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist())
+                .andExpect(header().string(CORRELATION_HEADER, CORRELATION_ID));
     }
 
     @Test
@@ -82,7 +98,9 @@ class SecurityConfigTest
 
         mockMvc.perform(get("/api/v1/fraud-alerts")
                         .header(AUTHORIZATION, "Bearer invalid-token"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
+                .andExpect(jsonPath("$.correlationId").isNotEmpty());
     }
 
     @Test
@@ -100,7 +118,12 @@ class SecurityConfigTest
     {
         mockMvc.perform(get("/api/v1/fraud-alerts")
                         .with(jwt().authorities(new SimpleGrantedAuthority(OTHER_AUTHORITY))))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
+                .andExpect(jsonPath("$.message").value("Required scope is missing"))
+                .andExpect(jsonPath("$.correlationId").isNotEmpty())
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist());
     }
 
     @Test

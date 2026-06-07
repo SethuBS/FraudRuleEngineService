@@ -116,6 +116,8 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Alert list default page | `FRAUD_API_PAGINATION_DEFAULT_PAGE` | `0` |
 | Alert list default size | `FRAUD_API_PAGINATION_DEFAULT_SIZE` | `20` |
 | Alert list maximum size | `FRAUD_API_PAGINATION_MAX_SIZE` | `100` |
+| Error correlation header | `FRAUD_API_ERRORS_CORRELATION_ID_HEADER` | `X-Correlation-Id` |
+| Safe internal error message | `FRAUD_API_ERRORS_INTERNAL_SERVER_ERROR_MESSAGE` | `An unexpected error occurred` |
 | Security public paths | `FRAUD_SECURITY_PUBLIC_PATHS` | `/actuator/health,/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
 | Transaction evaluation paths | `FRAUD_SECURITY_TRANSACTION_EVALUATE_PATHS` | `/api/v1/transaction-evaluations,/api/v1/transactions/evaluate` |
 | Fraud alert read paths | `FRAUD_SECURITY_FRAUD_ALERTS_READ_PATHS` | `/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation` |
@@ -172,6 +174,8 @@ The target verification baseline includes:
 The service is an OAuth2 Resource Server. Protected API requests must include a JWT bearer token. Missing tokens and invalid tokens return `401`. Valid JWTs are authorized by scope at both URL and method level. Transaction evaluation requires `transactions:evaluate`; fraud alert and stored evaluation retrieval require `fraud-alerts:read`; rule catalog paths are prepared for `rules:read`; rule admin paths are prepared for `rules:admin`; actuator details require `actuator:read`. Authenticated requests without the required scope return `403`.
 
 JWT verification is configured with issuer, audience, and either `FRAUD_SECURITY_JWT_JWK_SET_URI` or `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION`. Local development defaults to the bundled RS256 public key resource so the service can validate signed reviewer tokens without contacting an identity provider. Production deployments should configure the real issuer, accepted audience, and JWKS endpoint or mounted public-key resource. The service does not issue production tokens; token issuing and identity-provider setup are outside the target submission scope.
+
+API errors use a consistent safe response shape: `code`, `message`, `correlationId`, and `fieldErrors`. Validation errors include field-level details, while duplicate races, unauthorized requests, forbidden requests, missing resources, and unexpected failures use controlled messages that do not expose stack traces, SQL errors, secrets, or implementation details. The correlation id is also returned in the configured response header for log lookup.
 
 ## Local JWT Tokens
 

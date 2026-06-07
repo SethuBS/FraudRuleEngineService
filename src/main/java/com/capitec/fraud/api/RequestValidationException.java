@@ -1,6 +1,6 @@
 package com.capitec.fraud.api;
 
-import com.capitec.fraud.api.ValidationErrorResponse.FieldValidationError;
+import com.capitec.fraud.api.ApiErrorResponse.FieldValidationError;
 
 import java.util.List;
 

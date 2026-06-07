@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,7 +47,11 @@ import org.springframework.test.web.servlet.MockMvc;
     FraudAlertController.class,
     TransactionEvaluationQueryController.class
 })
-@Import(FraudApiConfiguration.class)
+@Import({
+    FraudApiConfiguration.class,
+    ApiCorrelationIdProvider.class,
+    GlobalExceptionHandler.class
+})
 @TestPropertySource(properties = {
     "fraud.api.paths.fraud-alerts=/test/fraud-alerts",
     "fraud.api.paths.fraud-alert-detail=/test/fraud-alerts/{alertId}",
@@ -60,6 +65,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class FraudRetrievalControllerTest
 {
 
+    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_ID = "retrieval-correlation-id";
     private static final UUID ALERT_ID = UUID.fromString("b3ed20ca-bac6-45dc-a37e-d61001ee37ab");
     private static final Instant ALERT_CREATED_AT = Instant.parse("2026-06-07T10:00:00Z");
     private static final Instant ALERT_UPDATED_AT = Instant.parse("2026-06-07T10:01:00Z");
@@ -202,9 +209,14 @@ class FraudRetrievalControllerTest
     {
         when(fraudRetrievalService.findAlert(ALERT_ID)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(fraudAlertsPath + "/" + ALERT_ID))
+        mockMvc.perform(get(fraudAlertsPath + "/" + ALERT_ID)
+                        .header(CORRELATION_HEADER, CORRELATION_ID))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.correlationId").value(CORRELATION_ID))
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist())
+                .andExpect(header().string(CORRELATION_HEADER, CORRELATION_ID));
     }
 
     @Test
@@ -233,7 +245,9 @@ class FraudRetrievalControllerTest
 
         mockMvc.perform(get(transactionFraudEvaluationPath.replace("{transactionId}", "missing-tx")))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.correlationId").isNotEmpty())
+                .andExpect(jsonPath("$.fieldErrors").isArray());
     }
 
     private static FraudAlertView sampleAlert()

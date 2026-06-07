@@ -5,33 +5,37 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Structured API error response.")
-public record ValidationErrorResponse(
+public record ApiErrorResponse(
         @Schema(description = "Stable error code.")
         String code,
-        @Schema(description = "Human-readable error message.")
+        @Schema(description = "Safe human-readable error message.")
         String message,
+        @Schema(description = "Request correlation id for support and log lookup.")
+        String correlationId,
         @Schema(description = "Field-level validation errors.")
         List<FieldValidationError> fieldErrors)
 {
 
-    public ValidationErrorResponse
+    public ApiErrorResponse
     {
         fieldErrors = List.copyOf(fieldErrors);
     }
 
-    public static ValidationErrorResponse invalidRequest(List<FieldValidationError> fieldErrors)
+    public static ApiErrorResponse of(
+            String code,
+            String message,
+            String correlationId)
     {
-        return new ValidationErrorResponse("VALIDATION_FAILED", "Request validation failed", fieldErrors);
+        return new ApiErrorResponse(code, message, correlationId, List.of());
     }
 
-    public static ValidationErrorResponse invalidRequest(String message)
+    public static ApiErrorResponse of(
+            String code,
+            String message,
+            String correlationId,
+            List<FieldValidationError> fieldErrors)
     {
-        return new ValidationErrorResponse("VALIDATION_FAILED", message, List.of());
-    }
-
-    public static ValidationErrorResponse resourceNotFound(String message)
-    {
-        return new ValidationErrorResponse("RESOURCE_NOT_FOUND", message, List.of());
+        return new ApiErrorResponse(code, message, correlationId, fieldErrors);
     }
 
     @Schema(description = "Field-level validation error.")

@@ -2,7 +2,7 @@ package com.capitec.fraud.api;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.capitec.fraud.api.ValidationErrorResponse.FieldValidationError;
+import com.capitec.fraud.api.ApiErrorResponse.FieldValidationError;
 import com.capitec.fraud.api.dto.FraudAlertResponse;
 import com.capitec.fraud.api.dto.PagedResponse;
 import com.capitec.fraud.application.FraudAlertSearchQuery;
@@ -61,7 +61,7 @@ public class FraudAlertController
                 description = "Filter or pagination value failed validation.",
                 content = @Content(
                         mediaType = APPLICATION_JSON_VALUE,
-                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+                        schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @GetMapping(ApiPaths.FRAUD_ALERTS)
     @PreAuthorize("@fraudSecurityAuthorizer.canReadFraudAlerts(authentication)")
@@ -114,7 +114,7 @@ public class FraudAlertController
                 description = "Fraud alert was not found.",
                 content = @Content(
                         mediaType = APPLICATION_JSON_VALUE,
-                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+                        schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @GetMapping(ApiPaths.FRAUD_ALERT_DETAIL)
     @PreAuthorize("@fraudSecurityAuthorizer.canReadFraudAlerts(authentication)")

@@ -3,7 +3,7 @@ package com.capitec.fraud.api;
 import static java.util.Comparator.comparing;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.capitec.fraud.api.ValidationErrorResponse.FieldValidationError;
+import com.capitec.fraud.api.ApiErrorResponse.FieldValidationError;
 import com.capitec.fraud.api.dto.TransactionEvaluationRequest;
 import com.capitec.fraud.api.dto.TransactionEvaluationResponse;
 import com.capitec.fraud.application.RawPayloadSanitizer;
@@ -78,7 +78,7 @@ public class TransactionEvaluationController
                 description = "Request body failed validation.",
                 content = @Content(
                         mediaType = APPLICATION_JSON_VALUE,
-                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+                        schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,

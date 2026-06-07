@@ -1,6 +1,7 @@
 {
   "code": "VALIDATION_FAILED",
   "message": "Request validation failed",
+  "correlationId": "local-correlation-id",
   "fieldErrors": [
     {
       "field": "amount",

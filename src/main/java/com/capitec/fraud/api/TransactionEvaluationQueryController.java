@@ -46,7 +46,7 @@ public class TransactionEvaluationQueryController
                 description = "Transaction evaluation was not found.",
                 content = @Content(
                         mediaType = APPLICATION_JSON_VALUE,
-                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+                        schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @GetMapping(ApiPaths.TRANSACTION_FRAUD_EVALUATION)
     @PreAuthorize("@fraudSecurityAuthorizer.canReadFraudAlerts(authentication)")
