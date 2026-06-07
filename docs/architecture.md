@@ -55,6 +55,14 @@ Processed event insertion, transaction persistence, rule evaluation rows, and al
 
 The outer use case catches database duplicate-key races only after the failed transaction has rolled back. It then performs a read-only lookup of the previously stored evaluation and returns that deterministic result. If no stored evaluation can be found, the database exception is translated into a safe application exception instead of exposing persistence internals.
 
+## Code-First Rule Engine
+
+Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.
+
+`FraudRuleEngine` injects all rule beans, sorts them by rule code for deterministic execution, checks the operational catalog before evaluating a rule, and converts each enabled rule outcome into a `RuleEvaluationResult`. Both matched and unmatched outcomes are returned so persistence can store auditable `matched=true` and `matched=false` rows.
+
+Rule enabled state is read through an application port. The PostgreSQL adapter uses `fraud_rules.enabled` when a catalog row exists and falls back to the configured `fraud.rule-catalog.enabled-by-default` value for rule definitions that have not been seeded yet.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
