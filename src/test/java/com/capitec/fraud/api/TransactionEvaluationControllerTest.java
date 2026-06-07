@@ -28,6 +28,7 @@ import com.capitec.fraud.domain.RuleEvaluationResult;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionEvaluation;
 import com.capitec.fraud.infrastructure.config.FraudApiConfiguration;
+import com.capitec.fraud.infrastructure.config.FraudObservabilityConfiguration;
 import com.capitec.fraud.infrastructure.config.FraudRawPayloadConfiguration;
 
 import java.time.Clock;
@@ -52,6 +53,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(TransactionEvaluationController.class)
 @Import({
     FraudApiConfiguration.class,
+    FraudObservabilityConfiguration.class,
     FraudRawPayloadConfiguration.class,
     ApiCorrelationIdProvider.class,
     GlobalExceptionHandler.class,
@@ -69,7 +71,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class TransactionEvaluationControllerTest
 {
 
-    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_HEADER = "X-Correlation-ID";
     private static final String CORRELATION_ID = "test-correlation-id";
     private static final Instant EVALUATED_AT = Instant.parse("2026-06-07T09:00:00Z");
     private static final Duration RETENTION_DURATION = Duration.ofHours(2);

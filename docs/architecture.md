@@ -89,6 +89,12 @@ The reviewer JWT generator is deliberately local-only. `scripts/generate-jwt.ps1
 
 `GlobalExceptionHandler` returns a standard `ApiErrorResponse` for validation failures, malformed requests, missing resources, duplicate evaluation races, method-level access denials, and unexpected exceptions. Spring Security authentication and URL-level access-denied failures use the same error model through the security filter chain. Responses include the configured correlation id header, while server logs record the error category and request path without request payloads, secrets, SQL messages, or stack traces in client responses.
 
+## Structured Logging And Correlation IDs
+
+`CorrelationIdFilter` runs at the start of the servlet filter chain. It reads the configured correlation header, generates a clean id when the header is missing or unsafe, stores the resolved value on the request, places it in MDC using the configured key, and returns the same value in the response header. Error handlers reuse the request attribute so success, validation, authentication, authorization, and unexpected-error responses all use one correlation id.
+
+Transaction evaluation logs are emitted from the application use case, not the controller, so the log line can include the final decision summary without touching the raw request body. Logs include event id, transaction id, decision, risk score, risk level, and rule counts. They deliberately exclude JWTs, authorization headers, card/PAN data, raw account numbers, customer personal details, merchant details, full raw payloads, SQL text, and stack traces in client responses.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.
