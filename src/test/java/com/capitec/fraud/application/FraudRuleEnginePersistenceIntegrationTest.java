@@ -17,6 +17,7 @@ import com.capitec.fraud.rules.FraudRule;
 import com.capitec.fraud.rules.HighValueTransactionRule;
 import com.capitec.fraud.rules.RuleMatch;
 import com.capitec.fraud.rules.TransactionContext;
+import com.capitec.fraud.rules.VelocityTransactionRule;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -47,7 +48,11 @@ import org.testcontainers.utility.DockerImageName;
     "fraud.rule-catalog.seed-on-startup=true",
     "fraud.rules.high-value-transaction.threshold-amount=1000.00",
     "fraud.rules.high-value-transaction.default-score=40",
-    "fraud.rules.high-value-transaction.severity=HIGH"
+    "fraud.rules.high-value-transaction.severity=HIGH",
+    "fraud.rules.velocity-transaction.transaction-count-threshold=5",
+    "fraud.rules.velocity-transaction.time-window-minutes=10",
+    "fraud.rules.velocity-transaction.default-score=35",
+    "fraud.rules.velocity-transaction.severity=HIGH"
 })
 class FraudRuleEnginePersistenceIntegrationTest
 {
@@ -67,6 +72,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String UNMATCHED_RULE_DESCRIPTION = "Does not match integration transactions";
     private static final String UNMATCHED_RULE_EXPLANATION = "Transaction did not match integration rule";
     private static final RiskScore UNMATCHED_RULE_SCORE = RiskScore.of(10);
+    private static final String VELOCITY_RULE_EXPLANATION =
+            "Observed 1 transactions within 10 minutes, within velocity threshold 5";
+    private static final RiskScore VELOCITY_RULE_SCORE = RiskScore.of(35);
     private static final String POSTGRES_IMAGE = System.getProperty(
             "test.postgres.image",
             System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
@@ -129,7 +137,12 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 false,
                                 HIGH_VALUE_RULE_SCORE,
                                 HIGH_VALUE_RULE_EXPLANATION),
-                        tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION));
+                        tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION),
+                        tuple(
+                                VelocityTransactionRule.RULE_CODE,
+                                false,
+                                VELOCITY_RULE_SCORE,
+                                VELOCITY_RULE_EXPLANATION));
         assertThat(evaluation.matchedRules())
                 .singleElement()
                 .satisfies(rule -> assertThat(rule.ruleCode()).isEqualTo(MATCHED_RULE_CODE));
@@ -149,7 +162,12 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 false,
                                 HIGH_VALUE_RULE_SCORE,
                                 HIGH_VALUE_RULE_EXPLANATION),
-                        tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION));
+                        tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION),
+                        tuple(
+                                VelocityTransactionRule.RULE_CODE,
+                                false,
+                                VELOCITY_RULE_SCORE,
+                                VELOCITY_RULE_EXPLANATION));
     }
 
     private static Transaction sampleTransaction()

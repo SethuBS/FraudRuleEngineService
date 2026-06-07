@@ -134,6 +134,8 @@ class FlywaySchemaMigrationTest
                         "uk_transactions_transaction_id",
                         "idx_transactions_customer_id",
                         "idx_transactions_account_id",
+                        "idx_transactions_customer_transaction_timestamp",
+                        "idx_transactions_account_transaction_timestamp",
                         "idx_transactions_created_at",
                         "idx_fraud_alerts_transaction_id",
                         "idx_fraud_alerts_risk_level",

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Long>
 {
@@ -24,4 +26,20 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             String accountId,
             Instant createdFrom,
             Instant createdTo);
+
+    @Query("""
+            SELECT transactionEntity
+            FROM TransactionEntity transactionEntity
+            WHERE (transactionEntity.customerId = :customerId OR transactionEntity.accountId = :accountId)
+              AND transactionEntity.transactionTimestamp >= :windowStart
+              AND transactionEntity.transactionTimestamp <= :windowEnd
+              AND transactionEntity.transactionId <> :currentTransactionId
+            ORDER BY transactionEntity.transactionTimestamp DESC
+            """)
+    List<TransactionEntity> findRecentByCustomerOrAccount(
+            @Param("customerId") String customerId,
+            @Param("accountId") String accountId,
+            @Param("currentTransactionId") String currentTransactionId,
+            @Param("windowStart") Instant windowStart,
+            @Param("windowEnd") Instant windowEnd);
 }
