@@ -14,6 +14,7 @@ import com.capitec.fraud.infrastructure.persistence.repository.ProcessedEventRep
 import com.capitec.fraud.infrastructure.persistence.repository.RuleEvaluationRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
 import com.capitec.fraud.rules.FraudRule;
+import com.capitec.fraud.rules.HighValueTransactionRule;
 import com.capitec.fraud.rules.RuleMatch;
 import com.capitec.fraud.rules.TransactionContext;
 
@@ -43,7 +44,10 @@ import org.testcontainers.utility.DockerImageName;
     "spring.flyway.enabled=true",
     "spring.jpa.hibernate.ddl-auto=validate",
     "fraud.rule-catalog.enabled-by-default=true",
-    "fraud.rule-catalog.seed-on-startup=true"
+    "fraud.rule-catalog.seed-on-startup=true",
+    "fraud.rules.high-value-transaction.threshold-amount=1000.00",
+    "fraud.rules.high-value-transaction.default-score=40",
+    "fraud.rules.high-value-transaction.severity=HIGH"
 })
 class FraudRuleEnginePersistenceIntegrationTest
 {
@@ -55,6 +59,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String MATCHED_RULE_DESCRIPTION = "Matches integration transactions";
     private static final String MATCHED_RULE_EXPLANATION = "Transaction matched integration rule";
     private static final RiskScore MATCHED_RULE_SCORE = RiskScore.of(55);
+    private static final String HIGH_VALUE_RULE_EXPLANATION =
+            "Transaction amount 100.50 ZAR is within high-value threshold 1000.00 ZAR";
+    private static final RiskScore HIGH_VALUE_RULE_SCORE = RiskScore.of(40);
     private static final String UNMATCHED_RULE_CODE = "NEVER_MATCH";
     private static final String UNMATCHED_RULE_NAME = "Never Match";
     private static final String UNMATCHED_RULE_DESCRIPTION = "Does not match integration transactions";
@@ -117,6 +124,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                         result -> result.explanation())
                 .containsExactly(
                         tuple(MATCHED_RULE_CODE, true, MATCHED_RULE_SCORE, MATCHED_RULE_EXPLANATION),
+                        tuple(
+                                HighValueTransactionRule.RULE_CODE,
+                                false,
+                                HIGH_VALUE_RULE_SCORE,
+                                HIGH_VALUE_RULE_EXPLANATION),
                         tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION));
         assertThat(evaluation.matchedRules())
                 .singleElement()
@@ -132,6 +144,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                         ruleEvaluation -> ruleEvaluation.getExplanation())
                 .containsExactlyInAnyOrder(
                         tuple(MATCHED_RULE_CODE, true, MATCHED_RULE_SCORE, MATCHED_RULE_EXPLANATION),
+                        tuple(
+                                HighValueTransactionRule.RULE_CODE,
+                                false,
+                                HIGH_VALUE_RULE_SCORE,
+                                HIGH_VALUE_RULE_EXPLANATION),
                         tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION));
     }
 
