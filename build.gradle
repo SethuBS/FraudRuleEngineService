@@ -12,6 +12,13 @@ description = 'Fraud Rule Engine Service API modular monolith scaffold'
 
 ext['testcontainers.version'] = '1.21.4'
 
+def testPostgresImage = providers.systemProperty('test.postgres.image')
+        .orElse(providers.environmentVariable('TEST_POSTGRES_IMAGE'))
+        .orElse('postgres:16-alpine')
+def testPostgresStartupTimeout = providers.systemProperty('test.postgres.startup-timeout')
+        .orElse(providers.environmentVariable('TEST_POSTGRES_STARTUP_TIMEOUT'))
+        .orElse('PT2M')
+
 base {
     archivesName = 'fraud-rule-engine-service'
 }
@@ -74,6 +81,9 @@ tasks.withType(Checkstyle).configureEach {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'fraud.raw-payload.cleanup.enabled', 'false'
+    systemProperty 'test.postgres.image', testPostgresImage.get()
+    systemProperty 'test.postgres.startup-timeout', testPostgresStartupTimeout.get()
     if (System.getProperty('os.name').toLowerCase().contains('windows')) {
         if (!System.getenv('DOCKER_HOST')) {
             environment 'DOCKER_HOST', 'npipe:////./pipe/docker_engine_linux'

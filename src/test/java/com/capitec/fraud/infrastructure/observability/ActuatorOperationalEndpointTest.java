@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Duration;
+import com.capitec.fraud.support.PostgresTestContainerFactory;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -35,17 +34,9 @@ class ActuatorOperationalEndpointTest
 
     private static final String ACTUATOR_READ_AUTHORITY = "SCOPE_actuator:read";
     private static final String OTHER_AUTHORITY = "SCOPE_other";
-    private static final String POSTGRES_IMAGE = System.getProperty(
-            "test.postgres.image",
-            System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
-    private static final long POSTGRES_STARTUP_TIMEOUT_MINUTES = Long.parseLong(System.getProperty(
-            "test.postgres.startup-timeout-minutes",
-            System.getenv().getOrDefault("TEST_POSTGRES_STARTUP_TIMEOUT_MINUTES", "2")));
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-            DockerImageName.parse(POSTGRES_IMAGE).asCompatibleSubstituteFor("postgres"))
-            .withStartupTimeout(Duration.ofMinutes(POSTGRES_STARTUP_TIMEOUT_MINUTES));
+    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
 
     @Autowired
     private MockMvc mockMvc;
