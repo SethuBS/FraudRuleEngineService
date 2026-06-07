@@ -51,6 +51,7 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 @TestPropertySource(properties = {
     "fraud.api.paths.transaction-evaluations=/test/transaction-evaluations",
+    "fraud.api.paths.transactions-evaluate=/test/transactions/evaluate",
     "fraud.api.validation.merchant-category-max-length=8",
     "fraud.raw-payload.retention-duration=PT2H",
     "fraud.raw-payload.redacted-value=MASKED",
@@ -67,6 +68,9 @@ class TransactionEvaluationControllerTest
 
     @Value("${fraud.api.paths.transaction-evaluations}")
     private String transactionEvaluationsPath;
+
+    @Value("${fraud.api.paths.transactions-evaluate}")
+    private String transactionsEvaluatePath;
 
     @MockitoBean
     private TransactionEvaluationService transactionEvaluationService;
@@ -233,6 +237,75 @@ class TransactionEvaluationControllerTest
                 .doesNotContain("4111111111111111")
                 .doesNotContain("secret-token")
                 .doesNotContain("customer@example.com");
+    }
+
+    @Test
+    @WithMockUser
+    void reviewerEvaluatePathReturnsEvaluationResponse()
+            throws Exception
+    {
+        when(transactionEvaluationService.evaluate(any(TransactionEvaluationCommand.class))).thenAnswer(invocation ->
+        {
+            TransactionEvaluationCommand command = invocation.getArgument(0);
+
+            return TransactionEvaluation.from(
+                    command.transaction(),
+                    List.of(),
+                    baselinePolicy(),
+                    EVALUATED_AT);
+        });
+
+        mockMvc.perform(post(transactionsEvaluatePath)
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "eventId": "event-1",
+                                  "transactionId": "tx-1",
+                                  "customerId": "customer-1",
+                                  "accountId": "account-1",
+                                  "amount": 100.50,
+                                  "currency": "ZAR",
+                                  "transactionTimestamp": "2026-06-07T08:00:00Z",
+                                  "merchantCategory": "grocery",
+                                  "country": "ZA",
+                                  "channel": "MOBILE",
+                                  "merchantId": "merchant-1",
+                                  "merchantName": "Corner Shop",
+                                  "deviceId": "device-1"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.transactionId").value("tx-1"))
+                .andExpect(jsonPath("$.decision").value(FraudDecision.APPROVED.name()))
+                .andExpect(jsonPath("$.riskScore").value(0))
+                .andExpect(jsonPath("$.riskLevel").value(RiskLevel.LOW.name()))
+                .andExpect(jsonPath("$.matchedRules").isArray())
+                .andExpect(jsonPath("$.evaluatedAt").value("2026-06-07T09:00:00Z"));
+    }
+
+    @Test
+    @WithMockUser
+    void reviewerEvaluatePathReturnsUsefulValidationErrors()
+            throws Exception
+    {
+        mockMvc.perform(post(transactionsEvaluatePath)
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[*].field", containsInAnyOrder(
+                        "accountId",
+                        "amount",
+                        "currency",
+                        "customerId",
+                        "eventId",
+                        "merchantCategory",
+                        "transactionId",
+                        "transactionTimestamp")));
+
+        verifyNoInteractions(transactionEvaluationService);
     }
 
     private static RiskPolicy baselinePolicy()

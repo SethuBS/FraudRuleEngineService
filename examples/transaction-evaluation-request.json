@@ -1,0 +1,15 @@
+{
+  "eventId": "event-1",
+  "transactionId": "tx-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-1",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-1"
+}

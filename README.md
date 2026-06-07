@@ -104,6 +104,7 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Setting | Environment variable | Default |
 | --- | --- | --- |
 | Transaction evaluation API path | `FRAUD_API_PATH_TRANSACTION_EVALUATIONS` | `/api/v1/transaction-evaluations` |
+| Reviewer transaction evaluation API path | `FRAUD_API_PATH_TRANSACTIONS_EVALUATE` | `/api/v1/transactions/evaluate` |
 | Merchant category maximum length | `FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH` | `80` |
 | Medium risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM` | `25` |
 | High risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH` | `50` |
@@ -149,7 +150,7 @@ The target service is an OAuth2 Resource Server. It validates JWT bearer tokens 
 Transaction evaluation accepts a stable categorized transaction contract. Fraud rules can change internally without changing the request shape or the generic matched-rule response list.
 
 ```http
-POST /api/v1/transaction-evaluations
+POST /api/v1/transactions/evaluate
 Content-Type: application/json
 ```
 
@@ -170,6 +171,16 @@ Content-Type: application/json
   "deviceId": "device-1"
 }
 ```
+
+The same payload is available at [examples/transaction-evaluation-request.json](examples/transaction-evaluation-request.json).
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -d @examples/transaction-evaluation-request.json
+```
+
+The response includes `transactionId`, `decision`, `riskScore`, `riskLevel`, `matchedRules`, and `evaluatedAt`. Duplicate event or transaction submissions are handled deterministically by the idempotency layer and return the stored evaluation when available.
 
 ## Design Trade-Offs
 

@@ -23,7 +23,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
-@RequestMapping(ApiPaths.TRANSACTION_EVALUATIONS)
+@RequestMapping({
+    ApiPaths.TRANSACTION_EVALUATIONS,
+    ApiPaths.TRANSACTIONS_EVALUATE
+})
 public class TransactionEvaluationController
 {
 
