@@ -41,3 +41,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | Card | Title | Priority | Labels | Due | Estimate | Local status |
 | --- | --- | --- | --- | --- | ---: | --- |
 | `S2.01` | Implement code-first fraud rule contract and rule engine | `P0 Critical` | `Sprint 2`, `Backend`, `Architecture` | 10 June 2026 | 4h | Implemented on `feature/s2-01-rule-engine` |
+| `S2.02` | Implement High Value Transaction rule | `P0 Critical` | `Sprint 2`, `Backend`, `Testing` | 10 June 2026 | 2h | Implemented on `feature/s2-02-high-value-transaction-rule` |

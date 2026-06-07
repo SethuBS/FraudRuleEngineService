@@ -63,6 +63,10 @@ Fraud rules are implemented by adding Spring beans that implement `FraudRule`. T
 
 Rule enabled state is read through an application port. The PostgreSQL adapter uses `fraud_rules.enabled` when a catalog row exists and falls back to the configured `fraud.rule-catalog.enabled-by-default` value for rule definitions that have not been seeded yet.
 
+## High Value Transaction Rule
+
+`HighValueTransactionRule` flags transactions whose amount exceeds the configured threshold. The threshold, risk score, and severity are supplied through `fraud.rules.high-value-transaction.*` properties so deployment environments can tune the rule without changing Java code. Equal-to-threshold transactions are treated as within threshold; only values above the threshold match.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
