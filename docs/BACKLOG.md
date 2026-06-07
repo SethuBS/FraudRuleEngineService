@@ -66,3 +66,9 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S3.08` | Finalise Dockerfile and Docker Compose runtime | `P0 Critical` | `Sprint 3`, `DevOps`, `Reliability` | 15 June 2026 | 5h | Implemented on `feature/s3-08-docker-runtime` |
 | `S3.09` | Add GitHub Actions CI pipeline | `P1 High` | `Sprint 3`, `DevOps`, `Testing` | 15 June 2026 | 4h | Implemented on `feature/s3-09-github-actions-ci` |
 | `S3.10` | Run OWASP Dependency Check and secret hygiene review | `P1 High` | `Sprint 3`, `Security`, `DevOps` | 15 June 2026 | 3h | Implemented on `feature/s3-10-dependency-secret-review` |
+
+## Sprint 4 Cards
+
+| Card | Title | Priority | Labels | Due | Estimate | Local status |
+| --- | --- | --- | --- | --- | ---: | --- |
+| `S4.01` | Complete unit tests for all fraud rules and scoring | `P0 Critical` | `Sprint 4`, `Testing`, `Backend` | 16 June 2026 | 5h | Implemented on `feature/s4-01-rule-scoring-unit-tests` |
