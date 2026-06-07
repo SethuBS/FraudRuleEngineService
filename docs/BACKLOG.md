@@ -72,3 +72,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | Card | Title | Priority | Labels | Due | Estimate | Local status |
 | --- | --- | --- | --- | --- | ---: | --- |
 | `S4.01` | Complete unit tests for all fraud rules and scoring | `P0 Critical` | `Sprint 4`, `Testing`, `Backend` | 16 June 2026 | 5h | Implemented on `feature/s4-01-rule-scoring-unit-tests` |
+| `S4.02` | Complete integration tests with PostgreSQL Testcontainers | `P0 Critical` | `Sprint 4`, `Testing`, `Database` | 16 June 2026 | 6h | Implemented on `feature/s4-02-postgresql-testcontainers-integration` |

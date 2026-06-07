@@ -8,7 +8,7 @@ import com.capitec.fraud.domain.TransactionCategory;
 import com.capitec.fraud.infrastructure.config.JpaAuditingConfiguration;
 import com.capitec.fraud.infrastructure.persistence.mapper.TransactionEntityMapper;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
-import com.capitec.fraud.support.PostgresTestContainerFactory;
+import com.capitec.fraud.support.PostgresIntegrationTest;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -27,11 +27,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers(disabledWithoutDocker = true)
 @Import({
     DatabaseHistoricalAverageAmountLookup.class,
     DatabaseHistoricalAverageAmountLookupIntegrationTest.FixedClockConfiguration.class,
@@ -42,14 +40,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     "spring.flyway.enabled=true",
     "spring.jpa.hibernate.ddl-auto=validate"
 })
-class DatabaseHistoricalAverageAmountLookupIntegrationTest
+class DatabaseHistoricalAverageAmountLookupIntegrationTest extends PostgresIntegrationTest
 {
 
     private static final Instant AUDIT_TIME = Instant.parse("2026-06-07T10:00:00Z");
     private static final Instant TRANSACTION_TIME = Instant.parse("2026-06-07T08:10:00Z");
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
+    private static final PostgreSQLContainer<?> POSTGRESQL = createPostgresContainer();
 
     @jakarta.annotation.Resource
     private DatabaseHistoricalAverageAmountLookup databaseHistoricalAverageAmountLookup;
@@ -66,9 +64,7 @@ class DatabaseHistoricalAverageAmountLookupIntegrationTest
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry)
     {
-        registry.add("spring.datasource.url", POSTGRESQL::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRESQL::getUsername);
-        registry.add("spring.datasource.password", POSTGRESQL::getPassword);
+        registerDatasourceProperties(registry, POSTGRESQL);
     }
 
     @Test

@@ -22,7 +22,7 @@ import com.capitec.fraud.rules.SuspiciousMerchantRule;
 import com.capitec.fraud.rules.TransactionContext;
 import com.capitec.fraud.rules.UnusualAmountRule;
 import com.capitec.fraud.rules.VelocityTransactionRule;
-import com.capitec.fraud.support.PostgresTestContainerFactory;
+import com.capitec.fraud.support.PostgresIntegrationTest;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -40,10 +40,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@Testcontainers(disabledWithoutDocker = true)
 @TestPropertySource(properties = {
     "spring.flyway.enabled=true",
     "spring.jpa.hibernate.ddl-auto=validate",
@@ -70,7 +68,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     "fraud.rules.velocity-transaction.default-score=35",
     "fraud.rules.velocity-transaction.severity=HIGH"
 })
-class FraudRuleEnginePersistenceIntegrationTest
+class FraudRuleEnginePersistenceIntegrationTest extends PostgresIntegrationTest
 {
 
     private static final Instant TRANSACTION_TIME = Instant.parse("2026-06-07T08:00:00Z");
@@ -105,7 +103,7 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final RiskScore VELOCITY_RULE_SCORE = RiskScore.of(35);
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
+    private static final PostgreSQLContainer<?> POSTGRESQL = createPostgresContainer();
 
     @jakarta.annotation.Resource
     private TransactionEvaluationService transactionEvaluationService;
@@ -125,9 +123,7 @@ class FraudRuleEnginePersistenceIntegrationTest
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry)
     {
-        registry.add("spring.datasource.url", POSTGRESQL::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRESQL::getUsername);
-        registry.add("spring.datasource.password", POSTGRESQL::getPassword);
+        registerDatasourceProperties(registry, POSTGRESQL);
     }
 
     @BeforeEach

@@ -7,7 +7,7 @@ import com.capitec.fraud.infrastructure.persistence.entity.ProcessedEventEntity;
 import com.capitec.fraud.infrastructure.persistence.entity.TransactionEntity;
 import com.capitec.fraud.infrastructure.persistence.repository.ProcessedEventRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
-import com.capitec.fraud.support.PostgresTestContainerFactory;
+import com.capitec.fraud.support.PostgresIntegrationTest;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -26,11 +26,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers(disabledWithoutDocker = true)
 @Import({
     JpaAuditingConfiguration.class,
     RawPayloadCleanupService.class,
@@ -40,7 +38,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     "spring.flyway.enabled=true",
     "spring.jpa.hibernate.ddl-auto=validate"
 })
-class RawPayloadCleanupServiceIntegrationTest
+class RawPayloadCleanupServiceIntegrationTest extends PostgresIntegrationTest
 {
 
     private static final Instant CLEANUP_TIME = Instant.parse("2026-06-14T09:00:00Z");
@@ -55,7 +53,7 @@ class RawPayloadCleanupServiceIntegrationTest
     private static final String SANITIZED_FUTURE_PAYLOAD = "{\"eventId\":\"event-future\"}";
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
+    private static final PostgreSQLContainer<?> POSTGRESQL = createPostgresContainer();
 
     @jakarta.annotation.Resource
     private RawPayloadCleanupService cleanupService;
@@ -72,9 +70,7 @@ class RawPayloadCleanupServiceIntegrationTest
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry)
     {
-        registry.add("spring.datasource.url", POSTGRESQL::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRESQL::getUsername);
-        registry.add("spring.datasource.password", POSTGRESQL::getPassword);
+        registerDatasourceProperties(registry, POSTGRESQL);
     }
 
     @Test

@@ -3,7 +3,7 @@ package com.capitec.fraud.infrastructure.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.capitec.fraud.support.PostgresTestContainerFactory;
+import com.capitec.fraud.support.PostgresIntegrationTest;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,14 +15,12 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers(disabledWithoutDocker = true)
-class FlywaySchemaMigrationTest
+class FlywaySchemaMigrationTest extends PostgresIntegrationTest
 {
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
+    private static final PostgreSQLContainer<?> POSTGRESQL = createPostgresContainer();
 
     @Test
     void createsCleanSchemaWithConstraintsIndexesAndAuditableRows()

@@ -11,7 +11,7 @@ import com.capitec.fraud.infrastructure.persistence.repository.FraudRuleReposito
 import com.capitec.fraud.rules.FraudRule;
 import com.capitec.fraud.rules.RuleMatch;
 import com.capitec.fraud.rules.TransactionContext;
-import com.capitec.fraud.support.PostgresTestContainerFactory;
+import com.capitec.fraud.support.PostgresIntegrationTest;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -29,11 +29,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers(disabledWithoutDocker = true)
 @Import({
     FraudRuleCatalogConfiguration.class,
     JpaAuditingConfiguration.class,
@@ -47,13 +45,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     "fraud.rule-catalog.enabled-by-default=true",
     "fraud.rule-catalog.seed-on-startup=false"
 })
-class RuleDefinitionSeederIntegrationTest
+class RuleDefinitionSeederIntegrationTest extends PostgresIntegrationTest
 {
 
     private static final Instant AUDIT_TIME = Instant.parse("2026-06-07T10:00:00Z");
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
+    private static final PostgreSQLContainer<?> POSTGRESQL = createPostgresContainer();
 
     @jakarta.annotation.Resource
     private RuleDefinitionSeeder ruleDefinitionSeeder;
@@ -67,9 +65,7 @@ class RuleDefinitionSeederIntegrationTest
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry)
     {
-        registry.add("spring.datasource.url", POSTGRESQL::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRESQL::getUsername);
-        registry.add("spring.datasource.password", POSTGRESQL::getPassword);
+        registerDatasourceProperties(registry, POSTGRESQL);
     }
 
     @Test
