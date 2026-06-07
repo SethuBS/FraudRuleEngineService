@@ -496,3 +496,4 @@ Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert
 - Project board workflow and labels: [docs/PROJECT_BOARD.md](docs/PROJECT_BOARD.md)
 - Sprint backlog snapshot: [docs/BACKLOG.md](docs/BACKLOG.md)
 - Security review: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
+- Architecture and interview notes: [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
