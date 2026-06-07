@@ -55,6 +55,12 @@ Processed event insertion, transaction persistence, rule evaluation rows, and al
 
 The outer use case catches database duplicate-key races only after the failed transaction has rolled back. It then performs a read-only lookup of the previously stored evaluation and returns that deterministic result. If no stored evaluation can be found, the database exception is translated into a safe application exception instead of exposing persistence internals.
 
+## Transaction Evaluation API
+
+`TransactionEvaluationController` exposes the primary reviewer path `POST /api/v1/transactions/evaluate`, backed by the configurable `fraud.api.paths.transactions-evaluate` property. The earlier `fraud.api.paths.transaction-evaluations` path remains available for compatibility with the stable DTO contract.
+
+The controller accepts raw JSON so the payload can be sanitized and retained with expiry metadata before mapping into the domain model. Bean validation returns structured `400` responses, while duplicate event or transaction submissions flow through the idempotent use case and return the stored evaluation deterministically when available.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.
