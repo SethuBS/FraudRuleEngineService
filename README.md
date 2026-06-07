@@ -105,6 +105,8 @@ GitHub Actions CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.
 
 The CI job uses Java 17, validates the Gradle wrapper, enables the Gradle dependency cache, runs `./gradlew clean test`, runs `./gradlew check`, builds the bootable jar with `./gradlew bootJar`, and validates the Docker image build. Test, result, and Checkstyle reports are uploaded as artifacts when a run fails. Dependency-Check remains a separate scheduled/manual report-only workflow in [.github/workflows/security-scan.yml](.github/workflows/security-scan.yml).
 
+Dependency and secret hygiene review notes are maintained in [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md). Local Dependency-Check runs should use `NVD_API_KEY` from an environment variable or ignored `.local/` file, never from committed configuration.
+
 ## Configuration
 
 Fraud evaluation thresholds are runtime configuration, not domain constants. The defaults live in `application.yml` and can be overridden by environment variables:
@@ -384,3 +386,4 @@ Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert
 - Definition of Done: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
 - Project board workflow and labels: [docs/PROJECT_BOARD.md](docs/PROJECT_BOARD.md)
 - Sprint backlog snapshot: [docs/BACKLOG.md](docs/BACKLOG.md)
+- Security review: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
