@@ -11,6 +11,7 @@ import com.capitec.fraud.domain.RiskScore;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionCategory;
 import com.capitec.fraud.rules.FraudRule;
+import com.capitec.fraud.rules.HistoricalAverageAmountLookup;
 import com.capitec.fraud.rules.RecentTransactionLookup;
 import com.capitec.fraud.rules.RuleMatch;
 import com.capitec.fraud.rules.TransactionContext;
@@ -68,6 +69,7 @@ class FraudRuleEngineTest
                 List.of(unmatchedRule, disabledRule, matchedRule),
                 ruleCode -> !DISABLED_RULE_CODE.equals(ruleCode),
                 RecentTransactionLookup.empty(),
+                HistoricalAverageAmountLookup.empty(),
                 baselinePolicy(),
                 Clock.fixed(EVALUATED_AT, ZoneOffset.UTC));
 

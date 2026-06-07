@@ -2,6 +2,7 @@ package com.capitec.fraud.infrastructure.persistence.repository;
 
 import com.capitec.fraud.infrastructure.persistence.entity.TransactionEntity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -42,4 +43,19 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             @Param("currentTransactionId") String currentTransactionId,
             @Param("windowStart") Instant windowStart,
             @Param("windowEnd") Instant windowEnd);
+
+    @Query(
+            value = """
+                    SELECT AVG(amount)
+                    FROM transactions
+                    WHERE (customer_id = :customerId OR account_id = :accountId)
+                      AND transaction_id <> :currentTransactionId
+                      AND currency = :currency
+                    """,
+            nativeQuery = true)
+    Optional<BigDecimal> averageAmountByCustomerOrAccount(
+            @Param("customerId") String customerId,
+            @Param("accountId") String accountId,
+            @Param("currentTransactionId") String currentTransactionId,
+            @Param("currency") String currency);
 }
