@@ -32,3 +32,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S1.03` | Create PostgreSQL schema with Flyway migrations | `P0 Critical` | `Sprint 1`, `Database`, `Reliability` | 8 June 2026 | 4h | Implemented on `feature/s1-03-postgresql-schema` |
 | `S1.04` | Implement JPA entities, repositories, and mapping layer | `P0 Critical` | `Sprint 1`, `Backend`, `Database` | 8 June 2026 | 5h | Implemented on `feature/s1-04-jpa-persistence` |
 | `S1.05` | Implement idempotency and duplicate race protection | `P0 Critical` | `Sprint 1`, `Backend`, `Database`, `Reliability` | 8 June 2026 | 5h | Implemented on `feature/s1-05-idempotency` |
+| `S1.06` | Implement RuleDefinitionSeeder for code/database sync | `P0 Critical` | `Sprint 1`, `Backend`, `Database`, `Reliability` | 9 June 2026 | 4h | Implemented on `feature/s1-06-rule-definition-seeder` |
