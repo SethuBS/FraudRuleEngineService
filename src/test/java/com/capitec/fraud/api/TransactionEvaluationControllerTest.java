@@ -2,6 +2,8 @@ package com.capitec.fraud.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -9,11 +11,14 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.capitec.fraud.application.RawPayloadSanitizer;
 import com.capitec.fraud.application.TransactionEvaluationCommand;
+import com.capitec.fraud.application.TransactionEvaluationException;
 import com.capitec.fraud.application.TransactionEvaluationService;
 import com.capitec.fraud.domain.FraudDecision;
 import com.capitec.fraud.domain.RiskLevel;
@@ -22,6 +27,7 @@ import com.capitec.fraud.domain.RiskScore;
 import com.capitec.fraud.domain.RuleEvaluationResult;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionEvaluation;
+import com.capitec.fraud.infrastructure.config.FraudApiConfiguration;
 import com.capitec.fraud.infrastructure.config.FraudRawPayloadConfiguration;
 
 import java.time.Clock;
@@ -45,7 +51,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(TransactionEvaluationController.class)
 @Import({
+    FraudApiConfiguration.class,
     FraudRawPayloadConfiguration.class,
+    ApiCorrelationIdProvider.class,
+    GlobalExceptionHandler.class,
     RawPayloadSanitizer.class,
     TransactionEvaluationControllerTest.FixedClockConfiguration.class
 })
@@ -60,6 +69,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class TransactionEvaluationControllerTest
 {
 
+    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_ID = "test-correlation-id";
     private static final Instant EVALUATED_AT = Instant.parse("2026-06-07T09:00:00Z");
     private static final Duration RETENTION_DURATION = Duration.ofHours(2);
 
@@ -82,10 +93,13 @@ class TransactionEvaluationControllerTest
     {
         mockMvc.perform(post(transactionEvaluationsPath)
                         .with(csrf())
+                        .header(CORRELATION_HEADER, CORRELATION_ID)
                         .contentType(APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.message").value("Request validation failed"))
+                .andExpect(jsonPath("$.correlationId").value(CORRELATION_ID))
                 .andExpect(jsonPath("$.fieldErrors[*].field", containsInAnyOrder(
                         "accountId",
                         "amount",
@@ -94,7 +108,8 @@ class TransactionEvaluationControllerTest
                         "eventId",
                         "merchantCategory",
                         "transactionId",
-                        "transactionTimestamp")));
+                        "transactionTimestamp")))
+                .andExpect(header().string(CORRELATION_HEADER, CORRELATION_ID));
 
         verifyNoInteractions(transactionEvaluationService);
     }
@@ -147,6 +162,25 @@ class TransactionEvaluationControllerTest
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[*].field", containsInAnyOrder("merchantCategory")));
+
+        verifyNoInteractions(transactionEvaluationService);
+    }
+
+    @Test
+    @WithMockUser
+    void malformedJsonReturnsSafeBadRequest()
+            throws Exception
+    {
+        mockMvc.perform(post(transactionEvaluationsPath)
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.message").value("Request body or parameters are invalid"))
+                .andExpect(jsonPath("$.correlationId").isNotEmpty())
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist());
 
         verifyNoInteractions(transactionEvaluationService);
     }
@@ -306,6 +340,73 @@ class TransactionEvaluationControllerTest
                         "transactionTimestamp")));
 
         verifyNoInteractions(transactionEvaluationService);
+    }
+
+    @Test
+    @WithMockUser
+    void unresolvedDuplicateRaceReturnsSafeConflict()
+            throws Exception
+    {
+        when(transactionEvaluationService.evaluate(any(TransactionEvaluationCommand.class))).thenThrow(
+                new TransactionEvaluationException(
+                        "duplicate key value violates unique constraint for transaction",
+                        new RuntimeException("SQL duplicate key detail")));
+
+        mockMvc.perform(post(transactionsEvaluatePath)
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content(validEvaluationRequest()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_EVALUATION"))
+                .andExpect(jsonPath("$.message").value("Duplicate event or transaction could not be resolved safely"))
+                .andExpect(jsonPath("$.correlationId").isNotEmpty())
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist())
+                .andExpect(content().string(not(containsString("SQL"))))
+                .andExpect(content().string(not(containsString("unique constraint"))));
+    }
+
+    @Test
+    @WithMockUser
+    void unexpectedErrorReturnsSafeInternalServerError()
+            throws Exception
+    {
+        when(transactionEvaluationService.evaluate(any(TransactionEvaluationCommand.class)))
+                .thenThrow(new IllegalStateException("SQL grammar error with secret-token"));
+
+        mockMvc.perform(post(transactionsEvaluatePath)
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content(validEvaluationRequest()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.correlationId").isNotEmpty())
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist())
+                .andExpect(content().string(not(containsString("SQL"))))
+                .andExpect(content().string(not(containsString("secret-token"))));
+    }
+
+    private static String validEvaluationRequest()
+    {
+        return """
+                {
+                  "eventId": "event-1",
+                  "transactionId": "tx-1",
+                  "customerId": "customer-1",
+                  "accountId": "account-1",
+                  "amount": 100.50,
+                  "currency": "ZAR",
+                  "transactionTimestamp": "2026-06-07T08:00:00Z",
+                  "merchantCategory": "grocery",
+                  "country": "ZA",
+                  "channel": "MOBILE",
+                  "merchantId": "merchant-1",
+                  "merchantName": "Corner Shop",
+                  "deviceId": "device-1"
+                }
+                """;
     }
 
     private static RiskPolicy baselinePolicy()

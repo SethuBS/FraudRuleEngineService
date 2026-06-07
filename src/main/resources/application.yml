@@ -49,6 +49,15 @@ fraud:
       default-page: ${FRAUD_API_PAGINATION_DEFAULT_PAGE:0}
       default-size: ${FRAUD_API_PAGINATION_DEFAULT_SIZE:20}
       max-size: ${FRAUD_API_PAGINATION_MAX_SIZE:100}
+    errors:
+      correlation-id-header: ${FRAUD_API_ERRORS_CORRELATION_ID_HEADER:X-Correlation-Id}
+      validation-failed-message: ${FRAUD_API_ERRORS_VALIDATION_FAILED_MESSAGE:Request validation failed}
+      malformed-request-message: ${FRAUD_API_ERRORS_MALFORMED_REQUEST_MESSAGE:Request body or parameters are invalid}
+      invalid-parameter-message: ${FRAUD_API_ERRORS_INVALID_PARAMETER_MESSAGE:Request parameter has an invalid value}
+      duplicate-evaluation-message: ${FRAUD_API_ERRORS_DUPLICATE_EVALUATION_MESSAGE:Duplicate event or transaction could not be resolved safely}
+      authentication-required-message: ${FRAUD_API_ERRORS_AUTHENTICATION_REQUIRED_MESSAGE:Authentication is required}
+      forbidden-message: ${FRAUD_API_ERRORS_FORBIDDEN_MESSAGE:Required scope is missing}
+      internal-server-error-message: ${FRAUD_API_ERRORS_INTERNAL_SERVER_ERROR_MESSAGE:An unexpected error occurred}
     validation:
       merchant-category-max-length: ${FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH:80}
   time:

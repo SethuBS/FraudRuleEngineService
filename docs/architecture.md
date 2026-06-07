@@ -85,6 +85,10 @@ Only health endpoints and local API documentation paths are public by default. A
 
 The reviewer JWT generator is deliberately local-only. `scripts/generate-jwt.ps1` and `scripts/generate-jwt.sh` sign RS256 tokens for the bundled local public key and support system ingestor, fraud analyst, and rule admin profiles. These scripts are excluded from the Docker build context, generated token files are ignored by Git, and production deployments must use an external IdP rather than the local development signer.
 
+## Safe API Error Handling
+
+`GlobalExceptionHandler` returns a standard `ApiErrorResponse` for validation failures, malformed requests, missing resources, duplicate evaluation races, method-level access denials, and unexpected exceptions. Spring Security authentication and URL-level access-denied failures use the same error model through the security filter chain. Responses include the configured correlation id header, while server logs record the error category and request path without request payloads, secrets, SQL messages, or stack traces in client responses.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.
