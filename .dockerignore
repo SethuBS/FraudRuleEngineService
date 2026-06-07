@@ -9,7 +9,12 @@ out
 dev-secrets
 secrets
 *.pem
+!src/main/resources/security/local-dev-public-key.pem
 *.key
+*.jwt
+*.token
+scripts/generate-jwt.ps1
+scripts/generate-jwt.sh
 *.log
 reports
 data

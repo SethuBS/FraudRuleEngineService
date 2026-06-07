@@ -173,6 +173,30 @@ The service is an OAuth2 Resource Server. Protected API requests must include a 
 
 JWT verification is configured with issuer, audience, and either `FRAUD_SECURITY_JWT_JWK_SET_URI` or `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION`. Local development defaults to the bundled RS256 public key resource so the service can validate signed reviewer tokens without contacting an identity provider. Production deployments should configure the real issuer, accepted audience, and JWKS endpoint or mounted public-key resource. The service does not issue production tokens; token issuing and identity-provider setup are outside the target submission scope.
 
+## Local JWT Tokens
+
+Reviewer token generation is local-only. The scripts use the bundled development signing key that matches `classpath:security/local-dev-public-key.pem`; this is not production authentication and must not be reused outside local review. Production must use an external identity provider, configured issuer, accepted audience, and JWKS or mounted public-key resource.
+
+Generate a token in one command:
+
+```powershell
+$token = .\scripts\generate-jwt.ps1 -Profile system-ingestor
+```
+
+```bash
+TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
+```
+
+Supported profiles:
+
+| Profile | Scopes |
+| --- | --- |
+| `system-ingestor` | `transactions:evaluate` |
+| `fraud-analyst` | `fraud-alerts:read actuator:read` |
+| `rule-admin` | `rules:read rules:admin actuator:read` |
+
+The default issuer is `fraud-rule-engine-local`, the default audience is `fraud-rule-engine-service`, and token lifetime can be overridden with `FRAUD_LOCAL_JWT_TTL_SECONDS` or the script argument. Generated token files should be written under `.local/` or with a `.jwt` / `.token` extension so they stay ignored by Git. The dev token scripts are excluded from the Docker build context; the production image only receives the bootable application JAR.
+
 ## API Examples
 
 Swagger UI is available locally at `http://localhost:8080/swagger-ui/index.html`, and the OpenAPI JSON is available at `http://localhost:8080/v3/api-docs`. The `prod` profile disables both endpoints through `application-prod.yml`, so Swagger remains a local-reviewer surface rather than a production API surface.
@@ -210,8 +234,11 @@ Example request payloads:
 - [examples/transaction-evaluation-request.json](examples/transaction-evaluation-request.json)
 
 ```bash
+TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
+
 curl -X POST "http://localhost:8080/api/v1/transactions/evaluate" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
   -d @examples/high-risk-transaction.json
 ```
 
@@ -220,19 +247,24 @@ The response includes `transactionId`, `decision`, `riskScore`, `riskLevel`, `ma
 Stored fraud alerts can be retrieved with optional filters and pagination:
 
 ```bash
-curl "http://localhost:8080/api/v1/fraud-alerts?customerId=customer-1&riskLevel=HIGH&page=0&size=20"
+TOKEN="$(./scripts/generate-jwt.sh --profile fraud-analyst)"
+
+curl "http://localhost:8080/api/v1/fraud-alerts?customerId=customer-1&riskLevel=HIGH&page=0&size=20" \
+  -H "Authorization: Bearer ${TOKEN}"
 ```
 
 Retrieve one alert by alert id:
 
 ```bash
-curl "http://localhost:8080/api/v1/fraud-alerts/b3ed20ca-bac6-45dc-a37e-d61001ee37ab"
+curl "http://localhost:8080/api/v1/fraud-alerts/b3ed20ca-bac6-45dc-a37e-d61001ee37ab" \
+  -H "Authorization: Bearer ${TOKEN}"
 ```
 
 Retrieve the stored evaluation for a transaction id:
 
 ```bash
-curl "http://localhost:8080/api/v1/transactions/tx-1/fraud-evaluation"
+curl "http://localhost:8080/api/v1/transactions/tx-1/fraud-evaluation" \
+  -H "Authorization: Bearer ${TOKEN}"
 ```
 
 Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert list pagination defaults and limits are configurable through `fraud.api.pagination.*`.
