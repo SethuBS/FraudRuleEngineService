@@ -22,10 +22,10 @@ import com.capitec.fraud.rules.SuspiciousMerchantRule;
 import com.capitec.fraud.rules.TransactionContext;
 import com.capitec.fraud.rules.UnusualAmountRule;
 import com.capitec.fraud.rules.VelocityTransactionRule;
+import com.capitec.fraud.support.PostgresTestContainerFactory;
 
 import java.math.BigDecimal;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
@@ -41,7 +41,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Testcontainers(disabledWithoutDocker = true)
@@ -104,14 +103,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String VELOCITY_RULE_EXPLANATION =
             "Observed 1 transactions within 10 minutes, within velocity threshold 5";
     private static final RiskScore VELOCITY_RULE_SCORE = RiskScore.of(35);
-    private static final String POSTGRES_IMAGE = System.getProperty(
-            "test.postgres.image",
-            System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-            DockerImageName.parse(POSTGRES_IMAGE).asCompatibleSubstituteFor("postgres"))
-            .withStartupTimeout(Duration.ofMinutes(2));
+    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
 
     @jakarta.annotation.Resource
     private TransactionEvaluationService transactionEvaluationService;

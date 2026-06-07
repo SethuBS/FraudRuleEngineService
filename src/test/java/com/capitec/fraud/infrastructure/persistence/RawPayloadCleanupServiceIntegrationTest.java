@@ -7,6 +7,7 @@ import com.capitec.fraud.infrastructure.persistence.entity.ProcessedEventEntity;
 import com.capitec.fraud.infrastructure.persistence.entity.TransactionEntity;
 import com.capitec.fraud.infrastructure.persistence.repository.ProcessedEventRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
+import com.capitec.fraud.support.PostgresTestContainerFactory;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -26,7 +27,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -53,13 +53,9 @@ class RawPayloadCleanupServiceIntegrationTest
     private static final String FUTURE_EVENT_ID = "event-future";
     private static final String SANITIZED_EXPIRED_PAYLOAD = "{\"eventId\":\"event-expired\"}";
     private static final String SANITIZED_FUTURE_PAYLOAD = "{\"eventId\":\"event-future\"}";
-    private static final String POSTGRES_IMAGE = System.getProperty(
-            "test.postgres.image",
-            System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-            DockerImageName.parse(POSTGRES_IMAGE).asCompatibleSubstituteFor("postgres"));
+    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
 
     @jakarta.annotation.Resource
     private RawPayloadCleanupService cleanupService;

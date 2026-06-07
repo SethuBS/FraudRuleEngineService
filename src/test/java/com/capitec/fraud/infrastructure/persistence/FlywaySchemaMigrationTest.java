@@ -3,10 +3,11 @@ package com.capitec.fraud.infrastructure.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.capitec.fraud.support.PostgresTestContainerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,20 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers(disabledWithoutDocker = true)
 class FlywaySchemaMigrationTest
 {
 
-    private static final String POSTGRES_IMAGE = System.getProperty(
-            "test.postgres.image",
-            System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
-
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-            DockerImageName.parse(POSTGRES_IMAGE).asCompatibleSubstituteFor("postgres"))
-            .withStartupTimeout(Duration.ofMinutes(2));
+    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
 
     @Test
     void createsCleanSchemaWithConstraintsIndexesAndAuditableRows()

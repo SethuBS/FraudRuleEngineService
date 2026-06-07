@@ -15,10 +15,10 @@ import com.capitec.fraud.infrastructure.persistence.repository.FraudAlertReposit
 import com.capitec.fraud.infrastructure.persistence.repository.ProcessedEventRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.RuleEvaluationRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
+import com.capitec.fraud.support.PostgresTestContainerFactory;
 
 import java.math.BigDecimal;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -36,7 +36,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Testcontainers(disabledWithoutDocker = true)
@@ -61,14 +60,9 @@ class TransactionEvaluationIdempotencyIntegrationTest
     private static final String DUPLICATE_RULE_NAME = "Duplicate Rule";
     private static final String DUPLICATE_RULE_EXPLANATION = "Duplicate rule code for rollback verification";
     private static final int DUPLICATE_RULE_SCORE = 10;
-    private static final String POSTGRES_IMAGE = System.getProperty(
-            "test.postgres.image",
-            System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-            DockerImageName.parse(POSTGRES_IMAGE).asCompatibleSubstituteFor("postgres"))
-            .withStartupTimeout(Duration.ofMinutes(2));
+    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
 
     @jakarta.annotation.Resource
     private TransactionEvaluationService transactionEvaluationService;

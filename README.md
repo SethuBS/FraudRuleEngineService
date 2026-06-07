@@ -71,20 +71,22 @@ This section will be completed as the implementation moves through Sprint 1 and 
 Current baseline checks:
 
 ```powershell
-.\gradlew.bat clean check
+.\gradlew.bat clean test
+.\gradlew.bat check
 .\gradlew.bat bootJar
 ```
 
 On Bash or PowerShell Core:
 
 ```bash
-./gradlew clean check
+./gradlew clean test
+./gradlew check
 ./gradlew bootJar
 ```
 
 ## Code Style
 
-Java formatting is enforced in the repository through `.editorconfig`, Checkstyle, and the CI `clean check` job. Use four spaces, no tabs, grouped imports, and next-line opening braces for classes, records, constructors, and methods:
+Java formatting is enforced in the repository through `.editorconfig`, Checkstyle, and the CI `check` job. Use four spaces, no tabs, grouped imports, and next-line opening braces for classes, records, constructors, and methods:
 
 ```java
 public class RuleController
@@ -96,6 +98,12 @@ public class RuleController
     }
 }
 ```
+
+## Continuous Integration
+
+GitHub Actions CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml). The workflow runs on pushes to `development`, `main`, and `feature/**`, on pull requests targeting `development` or `main`, and through manual dispatch. The badge at the top of this README shows the current `development` branch status.
+
+The CI job uses Java 17, validates the Gradle wrapper, enables the Gradle dependency cache, runs `./gradlew clean test`, runs `./gradlew check`, builds the bootable jar with `./gradlew bootJar`, and validates the Docker image build. Test, result, and Checkstyle reports are uploaded as artifacts when a run fails. Dependency-Check remains a separate scheduled/manual report-only workflow in [.github/workflows/security-scan.yml](.github/workflows/security-scan.yml).
 
 ## Configuration
 
@@ -162,6 +170,7 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Docker app host port | `APP_HOST_PORT` | `8080` |
 | Docker PostgreSQL host port | `POSTGRES_HOST_PORT` | `5432` |
 | Test PostgreSQL image | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image` | `postgres:16-alpine` |
+| Test PostgreSQL startup timeout | `TEST_POSTGRES_STARTUP_TIMEOUT` or `-Dtest.postgres.startup-timeout` | `PT2M` |
 
 ## Docker
 

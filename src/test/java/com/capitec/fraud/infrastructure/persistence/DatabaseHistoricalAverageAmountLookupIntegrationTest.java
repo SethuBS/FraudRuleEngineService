@@ -8,10 +8,10 @@ import com.capitec.fraud.domain.TransactionCategory;
 import com.capitec.fraud.infrastructure.config.JpaAuditingConfiguration;
 import com.capitec.fraud.infrastructure.persistence.mapper.TransactionEntityMapper;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
+import com.capitec.fraud.support.PostgresTestContainerFactory;
 
 import java.math.BigDecimal;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
@@ -28,7 +28,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -48,14 +47,9 @@ class DatabaseHistoricalAverageAmountLookupIntegrationTest
 
     private static final Instant AUDIT_TIME = Instant.parse("2026-06-07T10:00:00Z");
     private static final Instant TRANSACTION_TIME = Instant.parse("2026-06-07T08:10:00Z");
-    private static final String POSTGRES_IMAGE = System.getProperty(
-            "test.postgres.image",
-            System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-            DockerImageName.parse(POSTGRES_IMAGE).asCompatibleSubstituteFor("postgres"))
-            .withStartupTimeout(Duration.ofMinutes(2));
+    private static final PostgreSQLContainer<?> POSTGRESQL = PostgresTestContainerFactory.create();
 
     @jakarta.annotation.Resource
     private DatabaseHistoricalAverageAmountLookup databaseHistoricalAverageAmountLookup;

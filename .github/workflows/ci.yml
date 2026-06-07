@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - development
+      - main
+      - "feature/**"
   pull_request:
     branches:
       - development
+      - main
   workflow_dispatch:
 
 permissions:
@@ -14,6 +17,8 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  TEST_POSTGRES_IMAGE: postgres:16-alpine
+  TEST_POSTGRES_STARTUP_TIMEOUT: PT2M
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,17 +43,32 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Gradle
+      - name: Set up Gradle dependency cache
         uses: gradle/actions/setup-gradle@v5
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Run tests
+        run: ./gradlew clean test --no-daemon --stacktrace
+
       - name: Run verification checks
-        run: ./gradlew clean check --no-daemon
+        run: ./gradlew check --no-daemon --stacktrace
 
       - name: Build application jar
-        run: ./gradlew bootJar --no-daemon
+        run: ./gradlew bootJar --no-daemon --stacktrace
 
       - name: Build Docker image
         run: docker build --pull -t fraud-rule-engine-service:ci .
+
+      - name: Upload Gradle reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: gradle-reports-${{ github.run_attempt }}
+          path: |
+            build/reports/tests/test
+            build/test-results/test
+            build/reports/checkstyle
+          if-no-files-found: ignore
+          retention-days: 14
