@@ -174,3 +174,9 @@ Payload records also include `raw_payload_expires_at`. This keeps retention expl
 ## Future Extraction Path
 
 If Kafka ingestion, analyst workflow, or multi-tenant security becomes necessary later, those capabilities should be added as adapters or bounded modules around the same core use cases before considering service extraction.
+
+- Kafka should start as an ingestion adapter around `EvaluateTransactionUseCase`, reusing the existing idempotency table and adding retry, dead-letter, and optional outbox handling before any service split.
+- Analyst workflow should start by extending the alert aggregate with assignment, status transitions, comments, resolution reasons, and audit history while keeping evaluation immutable.
+- Multi-tenant security should start by adding tenant ownership to JWT claims, domain objects, persistence rows, repository filters, indexes, and security tests before considering physical tenant isolation.
+
+For interview-focused trade-offs and evolution notes, see [INTERVIEW_NOTES.md](INTERVIEW_NOTES.md).
