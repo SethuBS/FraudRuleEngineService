@@ -91,6 +91,12 @@ Transaction categories are normalized to uppercase domain codes before compariso
 
 Merchant IDs and merchant names are trimmed, whitespace-normalized, and uppercased before comparison. Missing optional merchant names produce a safe non-match unless the configured merchant ID list matches the transaction merchant ID.
 
+## Unusual Amount Rule
+
+`UnusualAmountRule` flags transactions whose amount exceeds the configured multiplier of the historical average for the same customer or account. The multiplier, risk score, and severity are supplied through `fraud.rules.unusual-amount.*` properties so the threshold can change without Java code changes.
+
+Historical average lookup is exposed to rules through `HistoricalAverageAmountLookup`. The PostgreSQL adapter calculates the average from stored transactions with the same currency, matching the current customer or account and excluding the current transaction id. If no baseline exists, the rule returns an explicit non-match instead of failing or guessing.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.

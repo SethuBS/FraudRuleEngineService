@@ -4,6 +4,7 @@ import com.capitec.fraud.rules.ForeignCountryTransactionRule;
 import com.capitec.fraud.rules.HighValueTransactionRule;
 import com.capitec.fraud.rules.RiskyMerchantCategoryRule;
 import com.capitec.fraud.rules.SuspiciousMerchantRule;
+import com.capitec.fraud.rules.UnusualAmountRule;
 import com.capitec.fraud.rules.VelocityTransactionRule;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
     HighValueTransactionRuleProperties.class,
     RiskyMerchantCategoryRuleProperties.class,
     SuspiciousMerchantRuleProperties.class,
+    UnusualAmountRuleProperties.class,
     VelocityTransactionRuleProperties.class
 })
 public class FraudRulesConfiguration
@@ -54,6 +56,15 @@ public class FraudRulesConfiguration
         return new SuspiciousMerchantRule(
                 properties.merchantIds(),
                 properties.merchantNameFragments(),
+                properties.toRiskScore(),
+                properties.severity());
+    }
+
+    @Bean
+    UnusualAmountRule unusualAmountRule(UnusualAmountRuleProperties properties)
+    {
+        return new UnusualAmountRule(
+                properties.multiplierThreshold(),
                 properties.toRiskScore(),
                 properties.severity());
     }

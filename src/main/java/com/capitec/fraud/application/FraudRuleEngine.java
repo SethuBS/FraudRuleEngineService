@@ -7,6 +7,7 @@ import com.capitec.fraud.domain.RuleEvaluationResult;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionEvaluation;
 import com.capitec.fraud.rules.FraudRule;
+import com.capitec.fraud.rules.HistoricalAverageAmountLookup;
 import com.capitec.fraud.rules.RecentTransactionLookup;
 import com.capitec.fraud.rules.TransactionContext;
 
@@ -23,6 +24,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
     private final List<FraudRule> fraudRules;
     private final FraudRuleEnablement fraudRuleEnablement;
     private final RecentTransactionLookup recentTransactionLookup;
+    private final HistoricalAverageAmountLookup historicalAverageAmountLookup;
     private final RiskPolicy riskPolicy;
     private final Clock clock;
 
@@ -30,6 +32,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
             List<FraudRule> fraudRules,
             FraudRuleEnablement fraudRuleEnablement,
             RecentTransactionLookup recentTransactionLookup,
+            HistoricalAverageAmountLookup historicalAverageAmountLookup,
             RiskPolicy riskPolicy,
             Clock clock)
     {
@@ -38,6 +41,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
                 .toList();
         this.fraudRuleEnablement = fraudRuleEnablement;
         this.recentTransactionLookup = recentTransactionLookup;
+        this.historicalAverageAmountLookup = historicalAverageAmountLookup;
         this.riskPolicy = riskPolicy;
         this.clock = clock;
     }
@@ -46,7 +50,10 @@ class FraudRuleEngine implements TransactionEvaluationEngine
     public TransactionEvaluation evaluate(Transaction transaction)
     {
         var evaluatedAt = Instant.now(clock);
-        var context = TransactionContext.current(transaction, recentTransactionLookup);
+        var context = TransactionContext.current(
+                transaction,
+                recentTransactionLookup,
+                historicalAverageAmountLookup);
         var ruleResults = fraudRules.stream()
                 .filter(rule -> fraudRuleEnablement.isEnabled(rule.code()))
                 .map(rule -> evaluateRule(rule, context, evaluatedAt))

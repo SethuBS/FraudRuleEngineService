@@ -78,6 +78,10 @@ fraud:
         - HIGH RISK TRADERS
       default-score: ${FRAUD_RULES_SUSPICIOUS_MERCHANT_DEFAULT_SCORE:50}
       severity: ${FRAUD_RULES_SUSPICIOUS_MERCHANT_SEVERITY:HIGH}
+    unusual-amount:
+      multiplier-threshold: ${FRAUD_RULES_UNUSUAL_AMOUNT_MULTIPLIER_THRESHOLD:3.00}
+      default-score: ${FRAUD_RULES_UNUSUAL_AMOUNT_DEFAULT_SCORE:45}
+      severity: ${FRAUD_RULES_UNUSUAL_AMOUNT_SEVERITY:HIGH}
     velocity-transaction:
       transaction-count-threshold: ${FRAUD_RULES_VELOCITY_TRANSACTION_COUNT_THRESHOLD:5}
       time-window-minutes: ${FRAUD_RULES_VELOCITY_TRANSACTION_TIME_WINDOW_MINUTES:10}

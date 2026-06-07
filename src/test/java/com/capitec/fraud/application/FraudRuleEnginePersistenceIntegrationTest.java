@@ -20,6 +20,7 @@ import com.capitec.fraud.rules.RiskyMerchantCategoryRule;
 import com.capitec.fraud.rules.RuleMatch;
 import com.capitec.fraud.rules.SuspiciousMerchantRule;
 import com.capitec.fraud.rules.TransactionContext;
+import com.capitec.fraud.rules.UnusualAmountRule;
 import com.capitec.fraud.rules.VelocityTransactionRule;
 
 import java.math.BigDecimal;
@@ -62,6 +63,9 @@ import org.testcontainers.utility.DockerImageName;
     "fraud.rules.suspicious-merchant.merchant-name-fragments=WATCHLISTED,HIGH RISK TRADERS",
     "fraud.rules.suspicious-merchant.default-score=50",
     "fraud.rules.suspicious-merchant.severity=HIGH",
+    "fraud.rules.unusual-amount.multiplier-threshold=3.00",
+    "fraud.rules.unusual-amount.default-score=45",
+    "fraud.rules.unusual-amount.severity=HIGH",
     "fraud.rules.velocity-transaction.transaction-count-threshold=5",
     "fraud.rules.velocity-transaction.time-window-minutes=10",
     "fraud.rules.velocity-transaction.default-score=35",
@@ -94,6 +98,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String SUSPICIOUS_MERCHANT_RULE_EXPLANATION =
             "Merchant ID/name did not match configured suspicious merchants";
     private static final RiskScore SUSPICIOUS_MERCHANT_RULE_SCORE = RiskScore.of(50);
+    private static final String UNUSUAL_AMOUNT_RULE_EXPLANATION =
+            "No historical average amount baseline exists for customer/account in ZAR";
+    private static final RiskScore UNUSUAL_AMOUNT_RULE_SCORE = RiskScore.of(45);
     private static final String VELOCITY_RULE_EXPLANATION =
             "Observed 1 transactions within 10 minutes, within velocity threshold 5";
     private static final RiskScore VELOCITY_RULE_SCORE = RiskScore.of(35);
@@ -176,6 +183,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 SUSPICIOUS_MERCHANT_RULE_SCORE,
                                 SUSPICIOUS_MERCHANT_RULE_EXPLANATION),
                         tuple(
+                                UnusualAmountRule.RULE_CODE,
+                                false,
+                                UNUSUAL_AMOUNT_RULE_SCORE,
+                                UNUSUAL_AMOUNT_RULE_EXPLANATION),
+                        tuple(
                                 VelocityTransactionRule.RULE_CODE,
                                 false,
                                 VELOCITY_RULE_SCORE,
@@ -215,6 +227,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 false,
                                 SUSPICIOUS_MERCHANT_RULE_SCORE,
                                 SUSPICIOUS_MERCHANT_RULE_EXPLANATION),
+                        tuple(
+                                UnusualAmountRule.RULE_CODE,
+                                false,
+                                UNUSUAL_AMOUNT_RULE_SCORE,
+                                UNUSUAL_AMOUNT_RULE_EXPLANATION),
                         tuple(
                                 VelocityTransactionRule.RULE_CODE,
                                 false,
