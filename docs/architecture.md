@@ -49,6 +49,12 @@ The pre-check is not enough on its own because two identical requests can pass t
 
 Processed event insertion, transaction persistence, rule evaluation rows, and alert creation run in one transaction. If any unique constraint rejects the write, the whole attempted duplicate write is rolled back.
 
+## Rule Catalog Synchronization
+
+Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
+
+The seeder never deletes rows for rules that are no longer present in code. Keeping historical catalog rows protects audit trails and existing rule evaluation references.
+
 ## Future Extraction Path
 
 If Kafka ingestion, analyst workflow, or multi-tenant security becomes necessary later, those capabilities should be added as adapters or bounded modules around the same core use cases before considering service extraction.

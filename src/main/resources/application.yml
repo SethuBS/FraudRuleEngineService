@@ -51,3 +51,6 @@ fraud:
     public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**}
   idempotency:
     completed-status: ${FRAUD_IDEMPOTENCY_COMPLETED_STATUS:COMPLETED}
+  rule-catalog:
+    enabled-by-default: ${FRAUD_RULE_CATALOG_ENABLED_BY_DEFAULT:true}
+    seed-on-startup: ${FRAUD_RULE_CATALOG_SEED_ON_STARTUP:true}

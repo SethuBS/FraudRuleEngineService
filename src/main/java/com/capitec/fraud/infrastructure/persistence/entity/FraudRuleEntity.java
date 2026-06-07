@@ -1,5 +1,7 @@
 package com.capitec.fraud.infrastructure.persistence.entity;
 
+import java.util.Objects;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -72,6 +74,30 @@ public class FraudRuleEntity extends AuditedEntity
     public String getDescription()
     {
         return description;
+    }
+
+    public boolean metadataMatches(
+            String nextName,
+            String nextDescription,
+            String nextSeverity,
+            int nextScore)
+    {
+        return Objects.equals(name, nextName)
+                && Objects.equals(description, nextDescription)
+                && Objects.equals(severity, nextSeverity)
+                && score == nextScore;
+    }
+
+    public void updateMetadata(
+            String nextName,
+            String nextDescription,
+            String nextSeverity,
+            int nextScore)
+    {
+        name = nextName;
+        description = nextDescription;
+        severity = nextSeverity;
+        score = nextScore;
     }
 
     public boolean isEnabled()
