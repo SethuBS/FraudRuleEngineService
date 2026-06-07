@@ -13,6 +13,7 @@ import com.capitec.fraud.infrastructure.persistence.repository.FraudAlertReposit
 import com.capitec.fraud.infrastructure.persistence.repository.ProcessedEventRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.RuleEvaluationRepository;
 import com.capitec.fraud.infrastructure.persistence.repository.TransactionRepository;
+import com.capitec.fraud.rules.ForeignCountryTransactionRule;
 import com.capitec.fraud.rules.FraudRule;
 import com.capitec.fraud.rules.HighValueTransactionRule;
 import com.capitec.fraud.rules.RuleMatch;
@@ -46,6 +47,9 @@ import org.testcontainers.utility.DockerImageName;
     "spring.jpa.hibernate.ddl-auto=validate",
     "fraud.rule-catalog.enabled-by-default=true",
     "fraud.rule-catalog.seed-on-startup=true",
+    "fraud.rules.foreign-country-transaction.expected-country=ZA",
+    "fraud.rules.foreign-country-transaction.default-score=45",
+    "fraud.rules.foreign-country-transaction.severity=HIGH",
     "fraud.rules.high-value-transaction.threshold-amount=1000.00",
     "fraud.rules.high-value-transaction.default-score=40",
     "fraud.rules.high-value-transaction.severity=HIGH",
@@ -64,6 +68,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String MATCHED_RULE_DESCRIPTION = "Matches integration transactions";
     private static final String MATCHED_RULE_EXPLANATION = "Transaction matched integration rule";
     private static final RiskScore MATCHED_RULE_SCORE = RiskScore.of(55);
+    private static final String FOREIGN_COUNTRY_RULE_EXPLANATION =
+            "Transaction country ZA matches expected home country ZA";
+    private static final RiskScore FOREIGN_COUNTRY_RULE_SCORE = RiskScore.of(45);
     private static final String HIGH_VALUE_RULE_EXPLANATION =
             "Transaction amount 100.50 ZAR is within high-value threshold 1000.00 ZAR";
     private static final RiskScore HIGH_VALUE_RULE_SCORE = RiskScore.of(40);
@@ -133,6 +140,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                 .containsExactly(
                         tuple(MATCHED_RULE_CODE, true, MATCHED_RULE_SCORE, MATCHED_RULE_EXPLANATION),
                         tuple(
+                                ForeignCountryTransactionRule.RULE_CODE,
+                                false,
+                                FOREIGN_COUNTRY_RULE_SCORE,
+                                FOREIGN_COUNTRY_RULE_EXPLANATION),
+                        tuple(
                                 HighValueTransactionRule.RULE_CODE,
                                 false,
                                 HIGH_VALUE_RULE_SCORE,
@@ -157,6 +169,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                         ruleEvaluation -> ruleEvaluation.getExplanation())
                 .containsExactlyInAnyOrder(
                         tuple(MATCHED_RULE_CODE, true, MATCHED_RULE_SCORE, MATCHED_RULE_EXPLANATION),
+                        tuple(
+                                ForeignCountryTransactionRule.RULE_CODE,
+                                false,
+                                FOREIGN_COUNTRY_RULE_SCORE,
+                                FOREIGN_COUNTRY_RULE_EXPLANATION),
                         tuple(
                                 HighValueTransactionRule.RULE_CODE,
                                 false,

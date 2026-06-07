@@ -1,5 +1,6 @@
 package com.capitec.fraud.infrastructure.config;
 
+import com.capitec.fraud.rules.ForeignCountryTransactionRule;
 import com.capitec.fraud.rules.HighValueTransactionRule;
 import com.capitec.fraud.rules.VelocityTransactionRule;
 
@@ -9,11 +10,21 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties({
+    ForeignCountryTransactionRuleProperties.class,
     HighValueTransactionRuleProperties.class,
     VelocityTransactionRuleProperties.class
 })
 public class FraudRulesConfiguration
 {
+
+    @Bean
+    ForeignCountryTransactionRule foreignCountryTransactionRule(ForeignCountryTransactionRuleProperties properties)
+    {
+        return new ForeignCountryTransactionRule(
+                properties.normalizedExpectedCountry(),
+                properties.toRiskScore(),
+                properties.severity());
+    }
 
     @Bean
     HighValueTransactionRule highValueTransactionRule(HighValueTransactionRuleProperties properties)
