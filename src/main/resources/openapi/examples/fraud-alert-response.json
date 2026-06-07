@@ -1,0 +1,13 @@
+{
+  "alertId": "b3ed20ca-bac6-45dc-a37e-d61001ee37ab",
+  "transactionId": "tx-high-risk-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "decision": "FLAGGED",
+  "riskScore": 100,
+  "riskLevel": "CRITICAL",
+  "status": "OPEN",
+  "createdAt": "2026-06-07T08:00:01Z",
+  "updatedAt": "2026-06-07T08:00:01Z",
+  "closedAt": null
+}

@@ -103,6 +103,11 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 
 | Setting | Environment variable | Default |
 | --- | --- | --- |
+| OpenAPI JSON enabled | `SPRINGDOC_API_DOCS_ENABLED` | `true` |
+| Swagger UI enabled | `SPRINGDOC_SWAGGER_UI_ENABLED` | `true` |
+| OpenAPI title | `FRAUD_OPENAPI_TITLE` | `Fraud Rule Engine Service API` |
+| OpenAPI version | `FRAUD_OPENAPI_VERSION` | `0.0.1-SNAPSHOT` |
+| OpenAPI bearer security scheme name | `FRAUD_OPENAPI_BEARER_SECURITY_SCHEME_NAME` | `bearer-jwt` |
 | Transaction evaluation API path | `FRAUD_API_PATH_TRANSACTION_EVALUATIONS` | `/api/v1/transaction-evaluations` |
 | Reviewer transaction evaluation API path | `FRAUD_API_PATH_TRANSACTIONS_EVALUATE` | `/api/v1/transactions/evaluate` |
 | Fraud alerts API path | `FRAUD_API_PATH_FRAUD_ALERTS` | `/api/v1/fraud-alerts` |
@@ -153,6 +158,8 @@ The target service is an OAuth2 Resource Server. It validates JWT bearer tokens 
 
 ## API Examples
 
+Swagger UI is available locally at `http://localhost:8080/swagger-ui/index.html`, and the OpenAPI JSON is available at `http://localhost:8080/v3/api-docs`. The `prod` profile disables both endpoints through `application-prod.yml`.
+
 Transaction evaluation accepts a stable categorized transaction contract. Fraud rules can change internally without changing the request shape or the generic matched-rule response list.
 
 ```http
@@ -178,12 +185,17 @@ Content-Type: application/json
 }
 ```
 
-The same payload is available at [examples/transaction-evaluation-request.json](examples/transaction-evaluation-request.json).
+Example request payloads:
+
+- [examples/high-risk-transaction.json](examples/high-risk-transaction.json)
+- [examples/low-risk-transaction.json](examples/low-risk-transaction.json)
+- [examples/duplicate-event.json](examples/duplicate-event.json)
+- [examples/transaction-evaluation-request.json](examples/transaction-evaluation-request.json)
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/transactions/evaluate" \
   -H "Content-Type: application/json" \
-  -d @examples/transaction-evaluation-request.json
+  -d @examples/high-risk-transaction.json
 ```
 
 The response includes `transactionId`, `decision`, `riskScore`, `riskLevel`, `matchedRules`, and `evaluatedAt`. Duplicate event or transaction submissions are handled deterministically by the idempotency layer and return the stored evaluation when available.

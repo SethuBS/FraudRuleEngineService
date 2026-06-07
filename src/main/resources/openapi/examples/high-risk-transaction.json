@@ -1,0 +1,15 @@
+{
+  "eventId": "event-high-risk-1",
+  "transactionId": "tx-high-risk-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "amount": 25000.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "CRYPTO",
+  "country": "US",
+  "channel": "MOBILE",
+  "merchantId": "MERCHANT-WATCHLIST",
+  "merchantName": "High Risk Traders",
+  "deviceId": "device-1"
+}

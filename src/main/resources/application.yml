@@ -16,6 +16,12 @@ spring:
         jdbc:
           time_zone: UTC
 
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
+  swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
+
 management:
   endpoints:
     web:
@@ -59,7 +65,24 @@ fraud:
   persistence:
     default-alert-status: ${FRAUD_PERSISTENCE_DEFAULT_ALERT_STATUS:OPEN}
   security:
-    public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**}
+    public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html}
+  openapi:
+    title: ${FRAUD_OPENAPI_TITLE:Fraud Rule Engine Service API}
+    description: ${FRAUD_OPENAPI_DESCRIPTION:Evaluates categorized transaction events against explainable fraud rules and exposes stored fraud alerts and decisions.}
+    version: ${FRAUD_OPENAPI_VERSION:0.0.1-SNAPSHOT}
+    bearer-security-scheme-name: ${FRAUD_OPENAPI_BEARER_SECURITY_SCHEME_NAME:bearer-jwt}
+    bearer-scheme: ${FRAUD_OPENAPI_BEARER_SCHEME:bearer}
+    bearer-format: ${FRAUD_OPENAPI_BEARER_FORMAT:JWT}
+    examples:
+      high-risk-transaction: ${FRAUD_OPENAPI_EXAMPLE_HIGH_RISK_TRANSACTION:classpath:openapi/examples/high-risk-transaction.json}
+      low-risk-transaction: ${FRAUD_OPENAPI_EXAMPLE_LOW_RISK_TRANSACTION:classpath:openapi/examples/low-risk-transaction.json}
+      duplicate-event: ${FRAUD_OPENAPI_EXAMPLE_DUPLICATE_EVENT:classpath:openapi/examples/duplicate-event.json}
+      high-risk-response: ${FRAUD_OPENAPI_EXAMPLE_HIGH_RISK_RESPONSE:classpath:openapi/examples/high-risk-evaluation-response.json}
+      low-risk-response: ${FRAUD_OPENAPI_EXAMPLE_LOW_RISK_RESPONSE:classpath:openapi/examples/low-risk-evaluation-response.json}
+      alert-list-response: ${FRAUD_OPENAPI_EXAMPLE_ALERT_LIST_RESPONSE:classpath:openapi/examples/fraud-alert-list-response.json}
+      alert-response: ${FRAUD_OPENAPI_EXAMPLE_ALERT_RESPONSE:classpath:openapi/examples/fraud-alert-response.json}
+      validation-error-response: ${FRAUD_OPENAPI_EXAMPLE_VALIDATION_ERROR_RESPONSE:classpath:openapi/examples/validation-error-response.json}
+      not-found-response: ${FRAUD_OPENAPI_EXAMPLE_NOT_FOUND_RESPONSE:classpath:openapi/examples/not-found-response.json}
   idempotency:
     completed-status: ${FRAUD_IDEMPOTENCY_COMPLETED_STATUS:COMPLETED}
   rule-catalog:

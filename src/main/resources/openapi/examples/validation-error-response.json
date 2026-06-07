@@ -1,0 +1,10 @@
+{
+  "code": "VALIDATION_FAILED",
+  "message": "Request validation failed",
+  "fieldErrors": [
+    {
+      "field": "amount",
+      "message": "must be greater than 0"
+    }
+  ]
+}

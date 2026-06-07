@@ -1,0 +1,40 @@
+{
+  "eventId": "event-high-risk-1",
+  "transactionId": "tx-high-risk-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "decision": "FLAGGED",
+  "riskScore": 100,
+  "riskLevel": "CRITICAL",
+  "matchedRules": [
+    {
+      "ruleCode": "FOREIGN_COUNTRY_TRANSACTION",
+      "ruleName": "Foreign Country Transaction",
+      "scoreContribution": 45,
+      "explanation": "Transaction country US differs from expected home country ZA",
+      "evaluatedAt": "2026-06-07T08:00:01Z"
+    },
+    {
+      "ruleCode": "HIGH_VALUE_TRANSACTION",
+      "ruleName": "High Value Transaction",
+      "scoreContribution": 55,
+      "explanation": "Transaction amount 25000.00 ZAR exceeds high-value threshold 10000.00 ZAR",
+      "evaluatedAt": "2026-06-07T08:00:01Z"
+    },
+    {
+      "ruleCode": "RISKY_MERCHANT_CATEGORY",
+      "ruleName": "Risky Merchant Category",
+      "scoreContribution": 30,
+      "explanation": "Merchant category CRYPTO is configured as risky",
+      "evaluatedAt": "2026-06-07T08:00:01Z"
+    },
+    {
+      "ruleCode": "SUSPICIOUS_MERCHANT",
+      "ruleName": "Suspicious Merchant",
+      "scoreContribution": 50,
+      "explanation": "Merchant ID MERCHANT-WATCHLIST is configured as suspicious",
+      "evaluatedAt": "2026-06-07T08:00:01Z"
+    }
+  ],
+  "evaluatedAt": "2026-06-07T08:00:01Z"
+}
