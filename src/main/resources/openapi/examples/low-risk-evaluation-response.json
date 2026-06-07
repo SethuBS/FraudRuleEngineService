@@ -1,0 +1,11 @@
+{
+  "eventId": "event-low-risk-1",
+  "transactionId": "tx-low-risk-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "decision": "APPROVED",
+  "riskScore": 0,
+  "riskLevel": "LOW",
+  "matchedRules": [],
+  "evaluatedAt": "2026-06-07T08:00:01Z"
+}

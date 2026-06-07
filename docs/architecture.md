@@ -69,6 +69,12 @@ The controller accepts raw JSON so the payload can be sanitized and retained wit
 
 The API layer maps application views into response DTOs and never returns JPA entities directly. Missing alerts or transaction evaluations are translated to structured `404 RESOURCE_NOT_FOUND` responses.
 
+## OpenAPI Documentation
+
+Springdoc publishes the local OpenAPI document and Swagger UI using metadata from `fraud.openapi.*` configuration. The API document includes a JWT bearer security scheme, endpoint annotations, request examples, and response examples loaded from classpath resources so reviewer payloads stay aligned with versioned JSON files.
+
+`application-prod.yml` disables both `/v3/api-docs` and Swagger UI. Local documentation paths are included in the configured public security paths so reviewers can inspect the contract without first configuring an identity provider, while protected business endpoints continue to require authentication.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.

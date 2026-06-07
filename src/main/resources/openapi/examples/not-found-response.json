@@ -1,0 +1,5 @@
+{
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "Fraud evaluation was not found for the supplied identifier",
+  "fieldErrors": []
+}

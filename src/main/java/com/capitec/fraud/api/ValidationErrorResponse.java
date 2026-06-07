@@ -2,9 +2,15 @@ package com.capitec.fraud.api;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Structured API error response.")
 public record ValidationErrorResponse(
+        @Schema(description = "Stable error code.")
         String code,
+        @Schema(description = "Human-readable error message.")
         String message,
+        @Schema(description = "Field-level validation errors.")
         List<FieldValidationError> fieldErrors)
 {
 
@@ -28,7 +34,12 @@ public record ValidationErrorResponse(
         return new ValidationErrorResponse("RESOURCE_NOT_FOUND", message, List.of());
     }
 
-    public record FieldValidationError(String field, String message)
+    @Schema(description = "Field-level validation error.")
+    public record FieldValidationError(
+            @Schema(description = "Request field name.")
+            String field,
+            @Schema(description = "Validation message.")
+            String message)
     {
     }
 }

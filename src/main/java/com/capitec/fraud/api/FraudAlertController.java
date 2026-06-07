@@ -1,5 +1,7 @@
 package com.capitec.fraud.api;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.capitec.fraud.api.ValidationErrorResponse.FieldValidationError;
 import com.capitec.fraud.api.dto.FraudAlertResponse;
 import com.capitec.fraud.api.dto.PagedResponse;
@@ -18,7 +20,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
+@Tag(name = "Fraud Alerts", description = "Retrieve stored fraud alerts and alert metadata.")
 public class FraudAlertController
 {
 
@@ -33,14 +44,39 @@ public class FraudAlertController
         this.paginationProperties = paginationProperties;
     }
 
+    @Operation(
+            operationId = OpenApiOperationIds.LIST_FRAUD_ALERTS,
+            summary = "List fraud alerts",
+            description = "Retrieves stored fraud alerts using optional filters and configured pagination defaults.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Fraud alerts were retrieved.",
+                content = @Content(
+                        mediaType = APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = PagedResponse.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Filter or pagination value failed validation.",
+                content = @Content(
+                        mediaType = APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+    })
     @GetMapping(ApiPaths.FRAUD_ALERTS)
     public PagedResponse<FraudAlertResponse> fraudAlerts(
+            @Parameter(description = "Filter alerts by customer id.")
             @RequestParam(required = false) String customerId,
+            @Parameter(description = "Filter alerts by account id.")
             @RequestParam(required = false) String accountId,
+            @Parameter(description = "Filter alerts by risk level.")
             @RequestParam(required = false) RiskLevel riskLevel,
+            @Parameter(description = "Filter alerts created at or after this timestamp.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant fromDate,
+            @Parameter(description = "Filter alerts created at or before this timestamp.")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant toDate,
+            @Parameter(description = "Zero-based result page.")
             @RequestParam(required = false) Integer page,
+            @Parameter(description = "Result page size.")
             @RequestParam(required = false) Integer size)
     {
         var resolvedPage = paginationProperties.resolvePage(page);
@@ -60,8 +96,28 @@ public class FraudAlertController
         return PagedResponse.from(alerts, FraudAlertResponse::from);
     }
 
+    @Operation(
+            operationId = OpenApiOperationIds.GET_FRAUD_ALERT,
+            summary = "Get a fraud alert",
+            description = "Retrieves one stored fraud alert by alert id.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Fraud alert was found.",
+                content = @Content(
+                        mediaType = APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = FraudAlertResponse.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Fraud alert was not found.",
+                content = @Content(
+                        mediaType = APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+    })
     @GetMapping(ApiPaths.FRAUD_ALERT_DETAIL)
-    public FraudAlertResponse fraudAlert(@PathVariable UUID alertId)
+    public FraudAlertResponse fraudAlert(
+            @Parameter(description = "Fraud alert id.")
+            @PathVariable UUID alertId)
     {
         return fraudRetrievalService.findAlert(alertId)
                 .map(FraudAlertResponse::from)

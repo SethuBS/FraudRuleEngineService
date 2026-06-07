@@ -1,6 +1,7 @@
 package com.capitec.fraud.api;
 
 import static java.util.Comparator.comparing;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.capitec.fraud.api.ValidationErrorResponse.FieldValidationError;
 import com.capitec.fraud.api.dto.TransactionEvaluationRequest;
@@ -21,12 +22,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping({
     ApiPaths.TRANSACTION_EVALUATIONS,
     ApiPaths.TRANSACTIONS_EVALUATE
 })
+@Tag(name = "Transaction Evaluation", description = "Submit categorized transactions for fraud evaluation.")
 public class TransactionEvaluationController
 {
 
@@ -53,6 +61,30 @@ public class TransactionEvaluationController
         this.clock = clock;
     }
 
+    @Operation(
+            operationId = OpenApiOperationIds.EVALUATE_TRANSACTION,
+            summary = "Evaluate a transaction",
+            description = "Evaluates a categorized transaction event and returns the deterministic fraud decision.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Transaction was evaluated.",
+                content = @Content(
+                        mediaType = APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = TransactionEvaluationResponse.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Request body failed validation.",
+                content = @Content(
+                        mediaType = APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ValidationErrorResponse.class)))
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            description = "Categorized transaction event to evaluate.",
+            content = @Content(
+                    mediaType = APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = TransactionEvaluationRequest.class)))
     @PostMapping
     public TransactionEvaluationResponse evaluate(@RequestBody String rawPayload)
     {

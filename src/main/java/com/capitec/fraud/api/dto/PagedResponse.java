@@ -5,11 +5,19 @@ import com.capitec.fraud.application.PageResult;
 import java.util.List;
 import java.util.function.Function;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Paginated API response.")
 public record PagedResponse<T>(
+        @Schema(description = "Current page content.")
         List<T> content,
+        @Schema(description = "Current zero-based page.")
         int page,
+        @Schema(description = "Requested page size.")
         int size,
+        @Schema(description = "Total matching records.")
         long totalElements,
+        @Schema(description = "Total available pages.")
         int totalPages)
 {
 
