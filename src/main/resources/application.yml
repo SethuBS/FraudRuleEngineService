@@ -70,6 +70,14 @@ fraud:
         - JEWELRY
       default-score: ${FRAUD_RULES_RISKY_MERCHANT_CATEGORY_DEFAULT_SCORE:30}
       severity: ${FRAUD_RULES_RISKY_MERCHANT_CATEGORY_SEVERITY:MEDIUM}
+    suspicious-merchant:
+      merchant-ids:
+        - MERCHANT-WATCHLIST
+      merchant-name-fragments:
+        - WATCHLISTED
+        - HIGH RISK TRADERS
+      default-score: ${FRAUD_RULES_SUSPICIOUS_MERCHANT_DEFAULT_SCORE:50}
+      severity: ${FRAUD_RULES_SUSPICIOUS_MERCHANT_SEVERITY:HIGH}
     velocity-transaction:
       transaction-count-threshold: ${FRAUD_RULES_VELOCITY_TRANSACTION_COUNT_THRESHOLD:5}
       time-window-minutes: ${FRAUD_RULES_VELOCITY_TRANSACTION_TIME_WINDOW_MINUTES:10}
