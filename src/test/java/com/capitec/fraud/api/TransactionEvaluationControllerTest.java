@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.capitec.fraud.application.RawPayloadSanitizer;
+import com.capitec.fraud.application.TransactionEvaluationCommand;
 import com.capitec.fraud.application.TransactionEvaluationService;
 import com.capitec.fraud.domain.FraudDecision;
 import com.capitec.fraud.domain.RiskLevel;
@@ -20,8 +22,12 @@ import com.capitec.fraud.domain.RiskScore;
 import com.capitec.fraud.domain.RuleEvaluationResult;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionEvaluation;
+import com.capitec.fraud.infrastructure.config.FraudRawPayloadConfiguration;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -29,20 +35,32 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(TransactionEvaluationController.class)
+@Import({
+    FraudRawPayloadConfiguration.class,
+    RawPayloadSanitizer.class,
+    TransactionEvaluationControllerTest.FixedClockConfiguration.class
+})
 @TestPropertySource(properties = {
     "fraud.api.paths.transaction-evaluations=/test/transaction-evaluations",
-    "fraud.api.validation.merchant-category-max-length=8"
+    "fraud.api.validation.merchant-category-max-length=8",
+    "fraud.raw-payload.retention-duration=PT2H",
+    "fraud.raw-payload.redacted-value=MASKED",
+    "fraud.raw-payload.sensitive-field-names=cardNumber,authorization,email,token,accountNumber"
 })
 class TransactionEvaluationControllerTest
 {
 
     private static final Instant EVALUATED_AT = Instant.parse("2026-06-07T09:00:00Z");
+    private static final Duration RETENTION_DURATION = Duration.ofHours(2);
 
     @Autowired
     private MockMvc mockMvc;
@@ -134,9 +152,10 @@ class TransactionEvaluationControllerTest
     void validRequestMapsToDomainModelAndReturnsStableResponse()
             throws Exception
     {
-        when(transactionEvaluationService.evaluate(any(Transaction.class))).thenAnswer(invocation ->
+        when(transactionEvaluationService.evaluate(any(TransactionEvaluationCommand.class))).thenAnswer(invocation ->
         {
-            Transaction transaction = invocation.getArgument(0);
+            TransactionEvaluationCommand command = invocation.getArgument(0);
+            Transaction transaction = command.transaction();
 
             return TransactionEvaluation.from(
                     transaction,
@@ -167,7 +186,10 @@ class TransactionEvaluationControllerTest
                                   "channel": "mobile",
                                   "merchantId": "merchant-1",
                                   "merchantName": "Corner Shop",
-                                  "deviceId": "device-1"
+                                  "deviceId": "device-1",
+                                  "cardNumber": "4111111111111111",
+                                  "authorization": "Bearer secret-token",
+                                  "email": "customer@example.com"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -184,10 +206,11 @@ class TransactionEvaluationControllerTest
                 .andExpect(jsonPath("$.matchedRules[0].explanation").value("Amount exceeded configured threshold"))
                 .andExpect(jsonPath("$.evaluatedAt").value("2026-06-07T09:00:00Z"));
 
-        var transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
-        verify(transactionEvaluationService).evaluate(transactionCaptor.capture());
+        var commandCaptor = ArgumentCaptor.forClass(TransactionEvaluationCommand.class);
+        verify(transactionEvaluationService).evaluate(commandCaptor.capture());
 
-        var transaction = transactionCaptor.getValue();
+        var command = commandCaptor.getValue();
+        var transaction = command.transaction();
         assertThat(transaction.eventId()).isEqualTo("event-1");
         assertThat(transaction.transactionId()).isEqualTo("tx-1");
         assertThat(transaction.customerId()).isEqualTo("customer-1");
@@ -201,6 +224,15 @@ class TransactionEvaluationControllerTest
         assertThat(transaction.merchantId()).isEqualTo("merchant-1");
         assertThat(transaction.merchantName()).isEqualTo("Corner Shop");
         assertThat(transaction.deviceId()).isEqualTo("device-1");
+        assertThat(command.rawPayloadExpiresAt()).isEqualTo(EVALUATED_AT.plus(RETENTION_DURATION));
+        assertThat(command.sanitizedRawPayload())
+                .contains("\"cardNumber\":\"MASKED\"")
+                .contains("\"authorization\":\"MASKED\"")
+                .contains("\"email\":\"MASKED\"")
+                .contains("\"customerId\":\" customer-1 \"")
+                .doesNotContain("4111111111111111")
+                .doesNotContain("secret-token")
+                .doesNotContain("customer@example.com");
     }
 
     private static RiskPolicy baselinePolicy()
@@ -211,5 +243,16 @@ class TransactionEvaluationControllerTest
                 RiskScore.of(75),
                 RiskLevel.MEDIUM,
                 RiskLevel.HIGH);
+    }
+
+    @TestConfiguration
+    static class FixedClockConfiguration
+    {
+
+        @Bean
+        Clock fixedClock()
+        {
+            return Clock.fixed(EVALUATED_AT, ZoneOffset.UTC);
+        }
     }
 }

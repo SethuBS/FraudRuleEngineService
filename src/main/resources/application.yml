@@ -54,3 +54,7 @@ fraud:
   rule-catalog:
     enabled-by-default: ${FRAUD_RULE_CATALOG_ENABLED_BY_DEFAULT:true}
     seed-on-startup: ${FRAUD_RULE_CATALOG_SEED_ON_STARTUP:true}
+  raw-payload:
+    retention-duration: ${FRAUD_RAW_PAYLOAD_RETENTION_DURATION:P7D}
+    redacted-value: ${FRAUD_RAW_PAYLOAD_REDACTED_VALUE:[REDACTED]}
+    sensitive-field-names: ${FRAUD_RAW_PAYLOAD_SENSITIVE_FIELD_NAMES:accountNumber,accountNo,iban,cardNumber,cardPan,pan,cvv,cvc,expiry,authorization,authorizationHeader,accessToken,refreshToken,authToken,bearerToken,token,idNumber,nationalId,passportNumber,email,phoneNumber,firstName,lastName,fullName,customerName}

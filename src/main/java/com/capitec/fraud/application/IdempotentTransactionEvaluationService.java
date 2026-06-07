@@ -29,8 +29,16 @@ class IdempotentTransactionEvaluationService implements TransactionEvaluationSer
     @Override
     public TransactionEvaluation evaluate(Transaction transaction)
     {
+        return evaluate(TransactionEvaluationCommand.withoutRawPayload(transaction));
+    }
+
+    @Override
+    public TransactionEvaluation evaluate(TransactionEvaluationCommand command)
+    {
+        var transaction = command.transaction();
+
         return findExistingEvaluation(transaction)
-                .orElseGet(() -> evaluateAndPersist(transaction));
+                .orElseGet(() -> evaluateAndPersist(command));
     }
 
     private java.util.Optional<TransactionEvaluation> findExistingEvaluation(Transaction transaction)
@@ -39,13 +47,17 @@ class IdempotentTransactionEvaluationService implements TransactionEvaluationSer
                 .or(() -> persistenceService.findEvaluationByTransactionId(transaction.transactionId(), riskPolicy));
     }
 
-    private TransactionEvaluation evaluateAndPersist(Transaction transaction)
+    private TransactionEvaluation evaluateAndPersist(TransactionEvaluationCommand command)
     {
+        var transaction = command.transaction();
         var evaluation = transactionEvaluationEngine.evaluate(transaction);
 
         try
         {
-            return persistenceService.persistProcessedEvaluation(evaluation);
+            return persistenceService.persistProcessedEvaluation(
+                    evaluation,
+                    command.sanitizedRawPayload(),
+                    command.rawPayloadExpiresAt());
         }
         catch (DataIntegrityViolationException ex)
         {

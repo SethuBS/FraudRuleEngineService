@@ -28,6 +28,12 @@ public class ApiExceptionHandler
         return ResponseEntity.status(BAD_REQUEST).body(ValidationErrorResponse.invalidRequest(fieldErrors));
     }
 
+    @ExceptionHandler(RequestValidationException.class)
+    ResponseEntity<ValidationErrorResponse> handleRequestValidation(RequestValidationException exception)
+    {
+        return ResponseEntity.status(BAD_REQUEST).body(ValidationErrorResponse.invalidRequest(exception.getFieldErrors()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ValidationErrorResponse> handleIllegalArgument(IllegalArgumentException exception)
     {
