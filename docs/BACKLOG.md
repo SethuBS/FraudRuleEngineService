@@ -51,3 +51,9 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S2.09` | Implement POST /api/v1/transactions/evaluate | `P0 Critical` | `Sprint 2`, `API`, `Backend`, `Security` | 12 June 2026 | 4h | Implemented on `feature/s2-09-post-transaction-evaluate` |
 | `S2.10` | Implement fraud alert and evaluation retrieval APIs | `P0 Critical` | `Sprint 2`, `API`, `Backend`, `Database` | 12 June 2026 | 6h | Implemented on `feature/s2-10-alert-evaluation-retrieval-apis` |
 | `S2.11` | Add OpenAPI documentation and API examples | `P1 High` | `Sprint 2`, `API`, `Documentation` | 12 June 2026 | 3h | Implemented on `feature/s2-11-openapi-docs-examples` |
+
+## Sprint 3 Cards
+
+| Card | Title | Priority | Labels | Due | Estimate | Local status |
+| --- | --- | --- | --- | --- | ---: | --- |
+| `S3.01` | Configure JWT resource server and scope authorization | `P0 Critical` | `Sprint 3`, `Security`, `Backend` | 13 June 2026 | 4h | Implemented on `feature/s3-01-jwt-resource-server-security` |

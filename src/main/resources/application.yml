@@ -66,6 +66,16 @@ fraud:
     default-alert-status: ${FRAUD_PERSISTENCE_DEFAULT_ALERT_STATUS:OPEN}
   security:
     public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html}
+    read-paths: ${FRAUD_SECURITY_READ_PATHS:/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation}
+    write-paths: ${FRAUD_SECURITY_WRITE_PATHS:/api/v1/transaction-evaluations,/api/v1/transactions/evaluate}
+    read-scope: ${FRAUD_SECURITY_READ_SCOPE:fraud.read}
+    write-scope: ${FRAUD_SECURITY_WRITE_SCOPE:fraud.evaluate}
+    scope-authority-prefix: ${FRAUD_SECURITY_SCOPE_AUTHORITY_PREFIX:SCOPE_}
+    jwt:
+      issuer-uri: ${FRAUD_SECURITY_JWT_ISSUER_URI:fraud-rule-engine-local}
+      audiences: ${FRAUD_SECURITY_JWT_AUDIENCES:fraud-rule-engine-service}
+      jwk-set-uri: ${FRAUD_SECURITY_JWT_JWK_SET_URI:}
+      public-key-location: ${FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION:classpath:security/local-dev-public-key.pem}
   openapi:
     title: ${FRAUD_OPENAPI_TITLE:Fraud Rule Engine Service API}
     description: ${FRAUD_OPENAPI_DESCRIPTION:Evaluates categorized transaction events against explainable fraud rules and exposes stored fraud alerts and decisions.}
