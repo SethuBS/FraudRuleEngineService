@@ -55,6 +55,10 @@ fraud:
     enabled-by-default: ${FRAUD_RULE_CATALOG_ENABLED_BY_DEFAULT:true}
     seed-on-startup: ${FRAUD_RULE_CATALOG_SEED_ON_STARTUP:true}
   rules:
+    foreign-country-transaction:
+      expected-country: ${FRAUD_RULES_FOREIGN_COUNTRY_TRANSACTION_EXPECTED_COUNTRY:ZA}
+      default-score: ${FRAUD_RULES_FOREIGN_COUNTRY_TRANSACTION_DEFAULT_SCORE:45}
+      severity: ${FRAUD_RULES_FOREIGN_COUNTRY_TRANSACTION_SEVERITY:HIGH}
     high-value-transaction:
       threshold-amount: ${FRAUD_RULES_HIGH_VALUE_TRANSACTION_THRESHOLD_AMOUNT:10000.00}
       default-score: ${FRAUD_RULES_HIGH_VALUE_TRANSACTION_DEFAULT_SCORE:55}

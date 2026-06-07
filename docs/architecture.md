@@ -73,6 +73,12 @@ Rule enabled state is read through an application port. The PostgreSQL adapter u
 
 The lookup queries transactions by customer or account using transaction timestamps, excludes the current transaction id, and is supported by customer/account plus transaction timestamp indexes. The rule reason includes the observed count, configured time window, and configured threshold for audit readability.
 
+## Foreign Country Transaction Rule
+
+`ForeignCountryTransactionRule` flags transactions whose supplied country differs from the configured expected home country. The expected country, risk score, and severity are supplied through `fraud.rules.foreign-country-transaction.*` properties so deployments can tune the assessment baseline without changing Java code.
+
+The current home-country source is configuration-backed for the assessment slice. Missing optional transaction country data is treated as a non-match with a clear explanation instead of failing the evaluation. A future customer profile lookup can replace the configured default through the transaction context without changing the HTTP contract.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
