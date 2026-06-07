@@ -11,5 +11,7 @@ public interface ProcessedEventRepository extends JpaRepository<ProcessedEventEn
 
     Optional<ProcessedEventEntity> findByEventId(String eventId);
 
+    Optional<ProcessedEventEntity> findFirstByTransactionIdOrderByCreatedAtAsc(String transactionId);
+
     boolean existsByEventId(String eventId);
 }

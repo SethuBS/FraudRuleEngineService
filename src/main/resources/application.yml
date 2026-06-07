@@ -49,3 +49,5 @@ fraud:
     default-alert-status: ${FRAUD_PERSISTENCE_DEFAULT_ALERT_STATUS:OPEN}
   security:
     public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**}
+  idempotency:
+    completed-status: ${FRAUD_IDEMPOTENCY_COMPLETED_STATUS:COMPLETED}

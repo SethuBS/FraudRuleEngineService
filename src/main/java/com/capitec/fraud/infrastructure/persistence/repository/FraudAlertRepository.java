@@ -15,6 +15,8 @@ public interface FraudAlertRepository extends JpaRepository<FraudAlertEntity, Lo
 
     Optional<FraudAlertEntity> findByAlertId(UUID alertId);
 
+    Optional<FraudAlertEntity> findFirstByTransactionTransactionIdOrderByCreatedAtAsc(String transactionId);
+
     List<FraudAlertEntity> findByTransactionTransactionIdOrderByCreatedAtDesc(String transactionId);
 
     List<FraudAlertEntity> findByCustomerIdAndCreatedAtBetweenOrderByCreatedAtDesc(

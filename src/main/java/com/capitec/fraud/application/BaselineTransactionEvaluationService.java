@@ -11,7 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-class BaselineTransactionEvaluationService implements TransactionEvaluationService
+class BaselineTransactionEvaluationService implements TransactionEvaluationEngine
 {
 
     private final RiskPolicy riskPolicy;

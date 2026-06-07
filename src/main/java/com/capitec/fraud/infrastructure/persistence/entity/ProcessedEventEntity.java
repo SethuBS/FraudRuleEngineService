@@ -29,6 +29,9 @@ public class ProcessedEventEntity extends AuditedEntity
     @Column(name = "processing_status", nullable = false, length = SchemaColumns.STATUS_LENGTH)
     private String processingStatus;
 
+    @Column(name = "evaluated_at")
+    private Instant evaluatedAt;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "sanitized_raw_payload", columnDefinition = SchemaColumns.JSONB_COLUMN)
     private String sanitizedRawPayload;
@@ -47,9 +50,21 @@ public class ProcessedEventEntity extends AuditedEntity
             String sanitizedRawPayload,
             Instant rawPayloadExpiresAt)
     {
+        this(eventId, transactionId, processingStatus, null, sanitizedRawPayload, rawPayloadExpiresAt);
+    }
+
+    public ProcessedEventEntity(
+            String eventId,
+            String transactionId,
+            String processingStatus,
+            Instant evaluatedAt,
+            String sanitizedRawPayload,
+            Instant rawPayloadExpiresAt)
+    {
         this.eventId = eventId;
         this.transactionId = transactionId;
         this.processingStatus = processingStatus;
+        this.evaluatedAt = evaluatedAt;
         this.sanitizedRawPayload = sanitizedRawPayload;
         this.rawPayloadExpiresAt = rawPayloadExpiresAt;
     }
@@ -72,6 +87,11 @@ public class ProcessedEventEntity extends AuditedEntity
     public String getProcessingStatus()
     {
         return processingStatus;
+    }
+
+    public Instant getEvaluatedAt()
+    {
+        return evaluatedAt;
     }
 
     public String getSanitizedRawPayload()

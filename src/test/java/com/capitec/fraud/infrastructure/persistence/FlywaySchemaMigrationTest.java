@@ -97,7 +97,13 @@ class FlywaySchemaMigrationTest
                         "created_at",
                         "updated_at");
         assertThat(columnNames(connection, "processed_events"))
-                .contains("event_id", "sanitized_raw_payload", "raw_payload_expires_at", "created_at", "updated_at");
+                .contains(
+                        "event_id",
+                        "evaluated_at",
+                        "sanitized_raw_payload",
+                        "raw_payload_expires_at",
+                        "created_at",
+                        "updated_at");
         assertThat(columnNames(connection, "fraud_rules"))
                 .contains("code", "name", "description", "enabled", "severity", "score", "created_at", "updated_at");
         assertThat(columnNames(connection, "fraud_alerts"))
@@ -144,9 +150,13 @@ class FlywaySchemaMigrationTest
     {
         executeUpdate(connection, """
                 INSERT INTO processed_events (
-                    event_id, transaction_id, processing_status, sanitized_raw_payload, raw_payload_expires_at
+                    event_id, transaction_id, processing_status, evaluated_at,
+                    sanitized_raw_payload, raw_payload_expires_at
                 )
-                VALUES ('event-1', 'tx-1', 'COMPLETED', '{"source":"api"}'::jsonb, CURRENT_TIMESTAMP + INTERVAL '7 days')
+                VALUES (
+                    'event-1', 'tx-1', 'COMPLETED', '2026-06-07T08:01:00Z',
+                    '{"source":"api"}'::jsonb, CURRENT_TIMESTAMP + INTERVAL '7 days'
+                )
                 """);
         executeUpdate(connection, """
                 INSERT INTO transactions (
