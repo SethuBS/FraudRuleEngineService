@@ -63,6 +63,16 @@ class SuspiciousMerchantRuleTest
     }
 
     @Test
+    void safeMerchantDoesNotMatchWhenMerchantIdAndNameAreMissing()
+    {
+        var result = rule.evaluate(TransactionContext.current(sampleTransaction(null, null)));
+
+        assertThat(result.matched()).isFalse();
+        assertThat(result.explanation())
+                .contains("did not match configured suspicious merchants");
+    }
+
+    @Test
     void exposesConfiguredMetadata()
     {
         assertThat(rule.code()).isEqualTo(SuspiciousMerchantRule.RULE_CODE);

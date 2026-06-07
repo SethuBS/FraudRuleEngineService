@@ -46,12 +46,14 @@ class FraudDecisionServiceTest
 
     @ParameterizedTest
     @CsvSource({
+        "0,LOW,APPROVED",
         "24,LOW,APPROVED",
         "25,MEDIUM,REVIEW",
         "49,MEDIUM,REVIEW",
         "50,HIGH,FLAGGED",
         "74,HIGH,FLAGGED",
-        "75,CRITICAL,FLAGGED"
+        "75,CRITICAL,FLAGGED",
+        "100,CRITICAL,FLAGGED"
     })
     void mapsConfiguredScoreBoundaries(
             int score,
@@ -62,6 +64,15 @@ class FraudDecisionServiceTest
 
         assertThat(fraudDecisionService.riskLevel(riskScore)).isEqualTo(expectedRiskLevel);
         assertThat(fraudDecisionService.decision(riskScore)).isEqualTo(expectedDecision);
+    }
+
+    @Test
+    void scoreAboveConfiguredMaximumIsCappedBeforeLevelAndDecisionMapping()
+    {
+        var riskScore = RiskScore.of(125);
+
+        assertThat(fraudDecisionService.riskLevel(riskScore)).isEqualTo(RiskLevel.CRITICAL);
+        assertThat(fraudDecisionService.decision(riskScore)).isEqualTo(FraudDecision.FLAGGED);
     }
 
     @Test
@@ -94,6 +105,39 @@ class FraudDecisionServiceTest
         assertThat(evaluation.riskLevel()).isEqualTo(RiskLevel.CRITICAL);
         assertThat(evaluation.decision()).isEqualTo(FraudDecision.FLAGGED);
         assertThat(evaluation.matchedRules()).hasSize(2);
+    }
+
+    @Test
+    void unmatchedRulesRemainAuditableAndDoNotContributeToRiskScore()
+    {
+        var evaluation = fraudDecisionService.evaluate(
+                sampleTransaction(),
+                List.of(
+                        RuleEvaluationResult.notMatched(
+                                "HIGH_VALUE_TRANSACTION",
+                                "High Value Transaction",
+                                55,
+                                "Amount was within threshold",
+                                EVALUATED_AT),
+                        RuleEvaluationResult.notMatched(
+                                "VELOCITY_TRANSACTION",
+                                "Velocity Transaction",
+                                35,
+                                "Velocity was normal",
+                                EVALUATED_AT)),
+                EVALUATED_AT);
+
+        assertThat(evaluation.riskScore()).isEqualTo(RiskScore.ZERO);
+        assertThat(evaluation.riskLevel()).isEqualTo(RiskLevel.LOW);
+        assertThat(evaluation.decision()).isEqualTo(FraudDecision.APPROVED);
+        assertThat(evaluation.matchedRules()).isEmpty();
+        assertThat(evaluation.ruleResults())
+                .hasSize(2)
+                .allSatisfy(result ->
+                {
+                    assertThat(result.matched()).isFalse();
+                    assertThat(result.effectiveScore()).isEqualTo(RiskScore.ZERO);
+                });
     }
 
     private static RiskPolicy baselinePolicy()

@@ -31,6 +31,19 @@ class VelocityTransactionRuleTest
             RiskLevel.HIGH);
 
     @Test
+    void noHistoricalTransactionsDoesNotMatchAndCountsCurrentTransaction()
+    {
+        var currentTransaction = sampleTransaction("event-current", "tx-current", TRANSACTION_TIME);
+        var result = rule.evaluate(contextWithHistory(currentTransaction, List.of()));
+
+        assertThat(result.matched()).isFalse();
+        assertThat(result.explanation())
+                .contains("Observed 1 transactions")
+                .contains("within 10 minutes")
+                .contains("within velocity threshold 3");
+    }
+
+    @Test
     void normalVelocityDoesNotMatch()
     {
         var currentTransaction = sampleTransaction("event-current", "tx-current", TRANSACTION_TIME);
