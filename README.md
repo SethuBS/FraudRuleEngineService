@@ -437,7 +437,7 @@ Stored fraud alerts can be retrieved with optional filters and pagination:
 ```bash
 TOKEN="$(./scripts/generate-jwt.sh --profile fraud-analyst)"
 
-curl "http://localhost:8080/api/v1/fraud-alerts?customerId=customer-1&riskLevel=HIGH&page=0&size=20" \
+curl "http://localhost:8080/api/v1/fraud-alerts?customerId=customer-1&riskLevel=CRITICAL&page=0&size=20" \
   -H "Authorization: Bearer ${TOKEN}"
 ```
 
@@ -497,3 +497,4 @@ Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert
 - Sprint backlog snapshot: [docs/BACKLOG.md](docs/BACKLOG.md)
 - Security review: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
 - Architecture and interview notes: [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
+- Docker smoke test evidence: [docs/DOCKER_SMOKE_TEST.md](docs/DOCKER_SMOKE_TEST.md)
