@@ -61,6 +61,14 @@ The outer use case catches database duplicate-key races only after the failed tr
 
 The controller accepts raw JSON so the payload can be sanitized and retained with expiry metadata before mapping into the domain model. Bean validation returns structured `400` responses, while duplicate event or transaction submissions flow through the idempotent use case and return the stored evaluation deterministically when available.
 
+## Fraud Retrieval APIs
+
+`FraudAlertController` exposes configured alert retrieval paths for listing alerts and fetching a single alert. The list endpoint supports optional `customerId`, `accountId`, `riskLevel`, `fromDate`, and `toDate` filters plus configured page and size defaults through `fraud.api.pagination.*`.
+
+`TransactionEvaluationQueryController` exposes the configured transaction evaluation lookup path. It delegates to the application query service and reuses `TransactionEvaluationResponse`, so stored evaluation retrieval has the same reviewer-facing decision, score, risk level, matched-rule evidence, and evaluated timestamp as the submit response.
+
+The API layer maps application views into response DTOs and never returns JPA entities directly. Missing alerts or transaction evaluations are translated to structured `404 RESOURCE_NOT_FOUND` responses.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.

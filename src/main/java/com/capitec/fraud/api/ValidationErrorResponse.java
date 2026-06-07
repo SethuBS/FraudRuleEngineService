@@ -23,6 +23,11 @@ public record ValidationErrorResponse(
         return new ValidationErrorResponse("VALIDATION_FAILED", message, List.of());
     }
 
+    public static ValidationErrorResponse resourceNotFound(String message)
+    {
+        return new ValidationErrorResponse("RESOURCE_NOT_FOUND", message, List.of());
+    }
+
     public record FieldValidationError(String field, String message)
     {
     }

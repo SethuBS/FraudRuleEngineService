@@ -105,6 +105,12 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | --- | --- | --- |
 | Transaction evaluation API path | `FRAUD_API_PATH_TRANSACTION_EVALUATIONS` | `/api/v1/transaction-evaluations` |
 | Reviewer transaction evaluation API path | `FRAUD_API_PATH_TRANSACTIONS_EVALUATE` | `/api/v1/transactions/evaluate` |
+| Fraud alerts API path | `FRAUD_API_PATH_FRAUD_ALERTS` | `/api/v1/fraud-alerts` |
+| Fraud alert detail API path | `FRAUD_API_PATH_FRAUD_ALERT_DETAIL` | `/api/v1/fraud-alerts/{alertId}` |
+| Transaction fraud evaluation lookup API path | `FRAUD_API_PATH_TRANSACTION_FRAUD_EVALUATION` | `/api/v1/transactions/{transactionId}/fraud-evaluation` |
+| Alert list default page | `FRAUD_API_PAGINATION_DEFAULT_PAGE` | `0` |
+| Alert list default size | `FRAUD_API_PAGINATION_DEFAULT_SIZE` | `20` |
+| Alert list maximum size | `FRAUD_API_PAGINATION_MAX_SIZE` | `100` |
 | Merchant category maximum length | `FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH` | `80` |
 | Medium risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM` | `25` |
 | High risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH` | `50` |
@@ -181,6 +187,26 @@ curl -X POST "http://localhost:8080/api/v1/transactions/evaluate" \
 ```
 
 The response includes `transactionId`, `decision`, `riskScore`, `riskLevel`, `matchedRules`, and `evaluatedAt`. Duplicate event or transaction submissions are handled deterministically by the idempotency layer and return the stored evaluation when available.
+
+Stored fraud alerts can be retrieved with optional filters and pagination:
+
+```bash
+curl "http://localhost:8080/api/v1/fraud-alerts?customerId=customer-1&riskLevel=HIGH&page=0&size=20"
+```
+
+Retrieve one alert by alert id:
+
+```bash
+curl "http://localhost:8080/api/v1/fraud-alerts/b3ed20ca-bac6-45dc-a37e-d61001ee37ab"
+```
+
+Retrieve the stored evaluation for a transaction id:
+
+```bash
+curl "http://localhost:8080/api/v1/transactions/tx-1/fraud-evaluation"
+```
+
+Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert list pagination defaults and limits are configurable through `fraud.api.pagination.*`.
 
 ## Design Trade-Offs
 
