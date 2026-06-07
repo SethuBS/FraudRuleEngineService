@@ -75,3 +75,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S4.02` | Complete integration tests with PostgreSQL Testcontainers | `P0 Critical` | `Sprint 4`, `Testing`, `Database` | 16 June 2026 | 6h | Implemented on `feature/s4-02-postgresql-testcontainers-integration` |
 | `S4.03` | Complete API and security integration tests | `P0 Critical` | `Sprint 4`, `Testing`, `API`, `Security` | 16 June 2026 | 6h | Implemented on `feature/s4-03-api-security-integration-tests` |
 | `S4.04` | Add idempotency and duplicate race tests | `P0 Critical` | `Sprint 4`, `Testing`, `Reliability`, `Database` | 16 June 2026 | 5h | Implemented on `feature/s4-04-idempotency-duplicate-race-tests` |
+| `S4.05` | Finish README with reviewer-first instructions | `P0 Critical` | `Sprint 4`, `Documentation` | 17 June 2026 | 5h | Implemented on `feature/s4-05-reviewer-readme` |
