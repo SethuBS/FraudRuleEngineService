@@ -2,15 +2,23 @@
 
 [![CI](https://github.com/SethuBS/FraudRuleEngineService/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/SethuBS/FraudRuleEngineService/actions/workflows/ci.yml)
 
-FraudRuleEngineService is a Java 17 / Spring Boot service for evaluating categorized transaction events against explainable fraud rules. The project is intentionally scoped as a modular monolith so the 18 June 2026 submission remains focused, reviewable, and runnable.
+FraudRuleEngineService is a Java 17 / Spring Boot service for evaluating categorized transaction events against explainable fraud rules. It persists the transaction decision, the rule evidence behind that decision, and alert records that can be retrieved through secured APIs. The project is intentionally scoped as a modular monolith so the 18 June 2026 submission remains focused, reviewable, and runnable.
 
 ## Status
 
-Sprint 0 baseline is being established. Core fraud rules, persistence models, APIs, security hardening, and full verification will be completed in later sprint cards.
+The reviewer path is implemented: Docker Compose starts the service and PostgreSQL, Flyway creates the schema, local-only JWT scripts generate reviewer tokens, the main APIs are secured by scope, and the Gradle test suite includes unit, integration, API, security, idempotency, Flyway, and Docker-facing coverage.
 
-## Problem Statement
+## Project Overview
 
 The service must receive a categorized transaction event, evaluate it against deterministic fraud rules, persist the decision and rule evaluation evidence, and expose retrieval APIs for alerts, event evaluations, and the active rule catalog.
+
+The primary reviewer workflow is:
+
+1. Start the app and PostgreSQL with Docker Compose.
+2. Generate a local reviewer JWT.
+3. Submit `examples/high-risk-transaction.json` to `POST /api/v1/transactions/evaluate`.
+4. Retrieve the created alert with `GET /api/v1/fraud-alerts`.
+5. Retrieve the stored decision with `GET /api/v1/transactions/{transactionId}/fraud-evaluation`.
 
 ## Scope
 
@@ -64,25 +72,82 @@ See [docs/architecture.md](docs/architecture.md) for package responsibilities an
 - OWASP Dependency-Check
 - Docker and Docker Compose
 
+## Prerequisites
+
+- Git.
+- Java 17 when running Gradle or the app outside Docker.
+- Docker Desktop or another Docker engine with Compose support.
+- PowerShell on Windows, or Bash on Linux/macOS.
+- `curl` for the sample API calls.
+- OpenSSL only when using `scripts/generate-jwt.sh`; Windows reviewers can use `scripts/generate-jwt.ps1`.
+- No local Gradle installation is required because the Gradle wrapper is committed.
+
 ## Quick Start
 
-This section will be completed as the implementation moves through Sprint 1 and Sprint 2.
-
-Current baseline checks:
-
-```powershell
-.\gradlew.bat clean test
-.\gradlew.bat check
-.\gradlew.bat bootJar
-```
-
-On Bash or PowerShell Core:
+The fastest reviewer path is Docker Compose:
 
 ```bash
-./gradlew clean test
-./gradlew check
-./gradlew bootJar
+docker compose up --build
 ```
+
+In another terminal, check readiness:
+
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/actuator/health/readiness
+```
+
+Generate a transaction-ingestor token and evaluate the high-risk sample:
+
+```powershell
+$token = .\scripts\generate-jwt.ps1 -Profile system-ingestor
+curl.exe -X POST "http://localhost:8080/api/v1/transactions/evaluate" `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $token" `
+  -d "@examples/high-risk-transaction.json"
+```
+
+```bash
+TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
+curl -X POST "http://localhost:8080/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d @examples/high-risk-transaction.json
+```
+
+Open Swagger UI locally at `http://localhost:8080/swagger-ui/index.html`.
+
+Stop the reviewer runtime when finished:
+
+```bash
+docker compose down
+```
+
+## Local Run Without Docker Compose
+
+Docker Compose is the recommended reviewer runtime because it wires PostgreSQL and the app together. If you prefer to run the Spring Boot process from the host, start PostgreSQL first:
+
+```bash
+docker compose up -d postgres
+```
+
+Then run the app with the same local database settings:
+
+```powershell
+$env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:5432/fraud_rule_engine"
+$env:SPRING_DATASOURCE_USERNAME = "fraud"
+$env:SPRING_DATASOURCE_PASSWORD = "fraud"
+.\gradlew.bat bootRun
+```
+
+```bash
+SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/fraud_rule_engine" \
+SPRING_DATASOURCE_USERNAME="fraud" \
+SPRING_DATASOURCE_PASSWORD="fraud" \
+./gradlew bootRun
+```
+
+Flyway runs automatically at startup in both Docker and local-host modes.
 
 ## Code Style
 
@@ -227,16 +292,41 @@ Expired payload snapshots are cleaned by a scheduled job using `FRAUD_RAW_PAYLOA
 
 ## Testing
 
-The target verification baseline includes:
+Run the normal reviewer verification from a clean checkout:
+
+```powershell
+.\gradlew.bat clean test
+.\gradlew.bat check
+.\gradlew.bat bootJar
+```
+
+```bash
+./gradlew clean test
+./gradlew check
+./gradlew bootJar
+```
+
+`clean test` starts PostgreSQL Testcontainers for database integration coverage, so Docker must be running. The test PostgreSQL image and startup timeout are configurable through `TEST_POSTGRES_IMAGE` / `-Dtest.postgres.image` and `TEST_POSTGRES_STARTUP_TIMEOUT` / `-Dtest.postgres.startup-timeout`.
+
+The current verification baseline includes:
 
 - Rule unit tests.
 - Application service tests.
 - PostgreSQL integration tests with Testcontainers.
 - API integration tests.
 - Security tests.
+- Idempotency and concurrent duplicate race tests.
 - OpenAPI contract tests.
 - Flyway migration smoke tests.
 - Docker Compose smoke tests.
+
+Security/dependency review can be run separately:
+
+```powershell
+.\gradlew.bat dependencyCheckAnalyze
+```
+
+Use `NVD_API_KEY` from an environment variable or an ignored `.local/` file for faster NVD updates.
 
 ## Security Model
 
@@ -372,14 +462,33 @@ Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert
 - A modular monolith keeps the write path simple and strongly consistent while still demonstrating clean boundaries.
 - Code-first rules keep fraud logic deterministic, testable, and easy to explain.
 - PostgreSQL and Flyway provide durable audit records with explicit schema evolution.
+- The service stores matched and unmatched rule evaluation rows so decisions can be audited, at the cost of more write volume per transaction.
+- Idempotency uses an application pre-check for the normal duplicate path and PostgreSQL unique constraints for concurrent races. That keeps the response deterministic without pretending the pre-check alone is enough.
+- Sanitized raw payload retention helps local debugging and audit review, but payloads expire and sensitive fields are redacted before storage.
+- Local JWT generation is deliberately reviewer-friendly and local-only. Production token issuing remains the responsibility of an external identity provider.
 - REST is the v1 ingestion adapter; Kafka can be added later around the same application service.
 
 ## Known Limitations
 
-- No fraud business rules are implemented in Sprint 0 baseline.
-- No analyst alert workflow is implemented yet.
-- No Kafka adapter is implemented yet.
-- No production identity-provider integration is included yet.
+- The implemented rules are deterministic assessment examples, not a complete banking fraud strategy.
+- The service does not include a full analyst case-management workflow for assigning, commenting on, or closing alerts.
+- Kafka ingestion is intentionally out of scope; transaction events are submitted through REST.
+- Production identity-provider setup is out of scope. The app validates JWTs, but production token issuance must come from an external IdP.
+- There is no tenant model or fine-grained customer/account authorization beyond configured JWT scopes.
+- Raw payload retention cleanup removes expired payload snapshots, but database archiving and long-term cold storage policies are not implemented.
+- Alert status transitions are persisted as a simple operational field; no workflow engine is included.
+- The Docker Compose setup is for local review, not a hardened production deployment.
+
+## Future Improvements
+
+- Add Kafka or another event-stream adapter around the existing evaluation use case.
+- Add analyst workflow APIs for alert assignment, status transitions, comments, and audit history.
+- Integrate with a real identity provider and JWKS endpoint in a deployment environment.
+- Add richer customer profile context, such as home country and historical behaviour windows sourced from dedicated profile data.
+- Add rule administration APIs with approval workflow for enabling or disabling rules.
+- Add database archival jobs for older transaction and evaluation records.
+- Publish dashboard-ready Grafana/Prometheus examples for operational review.
+- Add contract tests for generated OpenAPI clients or a Postman collection for manual reviewers.
 
 ## Project Governance
 
