@@ -38,6 +38,7 @@ fraud:
   time:
     zone-id: ${FRAUD_TIME_ZONE_ID:UTC}
   evaluation:
+    maximum-score: ${FRAUD_EVALUATION_MAXIMUM_SCORE:100}
     risk-thresholds:
       medium: ${FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM:25}
       high: ${FRAUD_EVALUATION_RISK_THRESHOLD_HIGH:50}

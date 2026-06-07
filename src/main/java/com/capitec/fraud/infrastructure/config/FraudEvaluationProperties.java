@@ -6,6 +6,7 @@ import com.capitec.fraud.domain.RiskScore;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -13,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "fraud.evaluation")
 public record FraudEvaluationProperties(
+        @NotNull @Positive Integer maximumScore,
         @Valid @NotNull RiskThresholds riskThresholds,
         @Valid @NotNull DecisionThresholds decisionThresholds)
 {
@@ -23,6 +25,7 @@ public record FraudEvaluationProperties(
                 RiskScore.of(riskThresholds.medium()),
                 RiskScore.of(riskThresholds.high()),
                 RiskScore.of(riskThresholds.critical()),
+                RiskScore.of(maximumScore),
                 decisionThresholds.review(),
                 decisionThresholds.flagged());
     }

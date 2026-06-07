@@ -2,7 +2,6 @@ package com.capitec.fraud.application;
 
 import static java.util.Comparator.comparing;
 
-import com.capitec.fraud.domain.RiskPolicy;
 import com.capitec.fraud.domain.RuleEvaluationResult;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionEvaluation;
@@ -25,7 +24,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
     private final FraudRuleEnablement fraudRuleEnablement;
     private final RecentTransactionLookup recentTransactionLookup;
     private final HistoricalAverageAmountLookup historicalAverageAmountLookup;
-    private final RiskPolicy riskPolicy;
+    private final FraudDecisionService fraudDecisionService;
     private final Clock clock;
 
     FraudRuleEngine(
@@ -33,7 +32,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
             FraudRuleEnablement fraudRuleEnablement,
             RecentTransactionLookup recentTransactionLookup,
             HistoricalAverageAmountLookup historicalAverageAmountLookup,
-            RiskPolicy riskPolicy,
+            FraudDecisionService fraudDecisionService,
             Clock clock)
     {
         this.fraudRules = fraudRules.stream()
@@ -42,7 +41,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
         this.fraudRuleEnablement = fraudRuleEnablement;
         this.recentTransactionLookup = recentTransactionLookup;
         this.historicalAverageAmountLookup = historicalAverageAmountLookup;
-        this.riskPolicy = riskPolicy;
+        this.fraudDecisionService = fraudDecisionService;
         this.clock = clock;
     }
 
@@ -59,7 +58,7 @@ class FraudRuleEngine implements TransactionEvaluationEngine
                 .map(rule -> evaluateRule(rule, context, evaluatedAt))
                 .toList();
 
-        return TransactionEvaluation.from(transaction, ruleResults, riskPolicy, evaluatedAt);
+        return fraudDecisionService.evaluate(transaction, ruleResults, evaluatedAt);
     }
 
     private RuleEvaluationResult evaluateRule(

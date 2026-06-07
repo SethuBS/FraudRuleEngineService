@@ -34,6 +34,10 @@ public record TransactionEvaluation(
         {
             throw new IllegalArgumentException("decision must match riskScore");
         }
+        if (!riskPolicy.cappedScore(riskScore).equals(riskScore))
+        {
+            throw new IllegalArgumentException("riskScore must not exceed maximumRiskScore");
+        }
     }
 
     public static TransactionEvaluation from(
@@ -44,9 +48,7 @@ public record TransactionEvaluation(
     {
         var immutableResults = List.copyOf(DomainValidation.requirePresent(ruleResults, "ruleResults"));
         var evaluationPolicy = DomainValidation.requirePresent(riskPolicy, "riskPolicy");
-        var riskScore = immutableResults.stream()
-                .map(RuleEvaluationResult::effectiveScore)
-                .reduce(RiskScore.ZERO, RiskScore::plus);
+        var riskScore = evaluationPolicy.aggregateScore(immutableResults);
 
         return new TransactionEvaluation(
                 transaction,

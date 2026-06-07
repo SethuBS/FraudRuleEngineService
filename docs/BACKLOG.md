@@ -47,3 +47,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S2.05` | Implement Risky Merchant Category rule | `P1 High` | `Sprint 2`, `Backend`, `Testing` | 11 June 2026 | 3h | Implemented on `feature/s2-05-risky-merchant-category-rule` |
 | `S2.06` | Implement Suspicious Merchant rule | `P1 High` | `Sprint 2`, `Backend`, `Testing` | 11 June 2026 | 3h | Implemented on `feature/s2-06-suspicious-merchant-rule` |
 | `S2.07` | Implement Unusual Amount rule | `P1 High` | `Sprint 2`, `Backend`, `Database`, `Testing` | 11 June 2026 | 5h | Implemented on `feature/s2-07-unusual-amount-rule` |
+| `S2.08` | Implement risk scoring and final decision policy | `P0 Critical` | `Sprint 2`, `Backend`, `Architecture`, `Testing` | 12 June 2026 | 4h | Implemented on `feature/s2-08-risk-scoring-decision-policy` |
