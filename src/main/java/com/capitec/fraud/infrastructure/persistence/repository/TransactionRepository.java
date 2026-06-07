@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -58,4 +59,17 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             @Param("accountId") String accountId,
             @Param("currentTransactionId") String currentTransactionId,
             @Param("currency") String currency);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE TransactionEntity transactionEntity
+            SET transactionEntity.sanitizedRawPayload = null,
+                transactionEntity.rawPayloadExpiresAt = null,
+                transactionEntity.updatedAt = :cleanedAt
+            WHERE transactionEntity.rawPayloadExpiresAt < :expiresBefore
+              AND transactionEntity.sanitizedRawPayload IS NOT NULL
+            """)
+    int clearExpiredRawPayloads(
+            @Param("expiresBefore") Instant expiresBefore,
+            @Param("cleanedAt") Instant cleanedAt);
 }

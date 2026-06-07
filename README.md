@@ -152,6 +152,9 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Review decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW` | `MEDIUM` |
 | Flagged decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED` | `HIGH` |
 | Application clock zone | `FRAUD_TIME_ZONE_ID` | `UTC` |
+| Raw payload retention duration | `FRAUD_RAW_PAYLOAD_RETENTION_DURATION` | `P7D` |
+| Raw payload cleanup enabled | `FRAUD_RAW_PAYLOAD_CLEANUP_ENABLED` | `true` |
+| Raw payload cleanup cron | `FRAUD_RAW_PAYLOAD_CLEANUP_CRON` | `0 0 * * * *` |
 | Test PostgreSQL image | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image` | `postgres:16-alpine` |
 
 ## Docker
@@ -167,6 +170,8 @@ docker compose up --build
 Flyway migrations live in `src/main/resources/db/migration`. `V1__create_schema.sql` creates the core PostgreSQL schema for idempotent event processing, transaction storage, fraud alert retrieval, rule catalog metadata, and auditable rule evaluation rows.
 
 Raw payload storage is intentionally sanitized and retention-ready: tables that may hold payload snapshots include `sanitized_raw_payload` and `raw_payload_expires_at`, while the retention duration itself is not fixed in the schema.
+
+Expired payload snapshots are cleaned by a scheduled job using `FRAUD_RAW_PAYLOAD_CLEANUP_CRON`. The job nulls `sanitized_raw_payload` and `raw_payload_expires_at` in `transactions` and `processed_events` when the expiry timestamp is in the past. It does not delete transaction, processed-event, rule-evaluation, or alert records, and logs cleanup counts only.
 
 ## Testing
 
