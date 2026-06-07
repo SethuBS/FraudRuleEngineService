@@ -9,8 +9,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface FraudAlertRepository extends JpaRepository<FraudAlertEntity, Long>
+public interface FraudAlertRepository
+        extends JpaRepository<FraudAlertEntity, Long>, JpaSpecificationExecutor<FraudAlertEntity>
 {
 
     Optional<FraudAlertEntity> findByAlertId(UUID alertId);

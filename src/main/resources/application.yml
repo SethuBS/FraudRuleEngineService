@@ -34,6 +34,15 @@ fraud:
     paths:
       transaction-evaluations: ${FRAUD_API_PATH_TRANSACTION_EVALUATIONS:/api/v1/transaction-evaluations}
       transactions-evaluate: ${FRAUD_API_PATH_TRANSACTIONS_EVALUATE:/api/v1/transactions/evaluate}
+      fraud-alerts: ${FRAUD_API_PATH_FRAUD_ALERTS:/api/v1/fraud-alerts}
+      fraud-alert-detail: ${FRAUD_API_PATH_FRAUD_ALERT_DETAIL:/api/v1/fraud-alerts/{alertId}}
+      transaction-fraud-evaluation: ${FRAUD_API_PATH_TRANSACTION_FRAUD_EVALUATION:/api/v1/transactions/{transactionId}/fraud-evaluation}
+    pagination:
+      minimum-page: ${FRAUD_API_PAGINATION_MINIMUM_PAGE:0}
+      minimum-size: ${FRAUD_API_PAGINATION_MINIMUM_SIZE:1}
+      default-page: ${FRAUD_API_PAGINATION_DEFAULT_PAGE:0}
+      default-size: ${FRAUD_API_PAGINATION_DEFAULT_SIZE:20}
+      max-size: ${FRAUD_API_PAGINATION_MAX_SIZE:100}
     validation:
       merchant-category-max-length: ${FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH:80}
   time:

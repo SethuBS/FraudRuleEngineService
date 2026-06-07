@@ -2,6 +2,8 @@ package com.capitec.fraud.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.capitec.fraud.application.FraudAlertSearchQuery;
+import com.capitec.fraud.application.FraudRetrievalService;
 import com.capitec.fraud.domain.FraudDecision;
 import com.capitec.fraud.domain.Money;
 import com.capitec.fraud.domain.RiskLevel;
@@ -60,6 +62,7 @@ import org.testcontainers.utility.DockerImageName;
     RandomAlertIdGenerator.class,
     RuleEvaluationEntityMapper.class,
     TransactionEntityMapper.class,
+    DatabaseFraudRetrievalService.class,
     TransactionEvaluationPersistenceService.class
 })
 @TestPropertySource(properties = {
@@ -91,6 +94,9 @@ class PersistenceRepositoryIntegrationTest
 
     @jakarta.annotation.Resource
     private TransactionEvaluationPersistenceService persistenceService;
+
+    @jakarta.annotation.Resource
+    private FraudRetrievalService fraudRetrievalService;
 
     @jakarta.annotation.Resource
     private TransactionRepository transactionRepository;
@@ -169,6 +175,20 @@ class PersistenceRepositoryIntegrationTest
                     assertThat(storedAlert.getStatus()).isEqualTo("OPEN");
                     assertThat(storedAlert.getTransaction().getTransactionId()).isEqualTo("tx-1");
                 });
+
+        var pagedAlerts = fraudRetrievalService.findAlerts(new FraudAlertSearchQuery(
+                "customer-1",
+                "account-1",
+                RiskLevel.HIGH,
+                AUDIT_TIME.minusSeconds(1),
+                AUDIT_TIME.plusSeconds(1),
+                0,
+                10));
+
+        assertThat(pagedAlerts.totalElements()).isEqualTo(1);
+        assertThat(pagedAlerts.content())
+                .singleElement()
+                .satisfies(storedAlert -> assertThat(storedAlert.alertId()).isEqualTo(alert.alertId()));
     }
 
     @Test
@@ -233,6 +253,12 @@ class PersistenceRepositoryIntegrationTest
         Clock fixedClock()
         {
             return Clock.fixed(AUDIT_TIME, ZoneOffset.UTC);
+        }
+
+        @Bean
+        RiskPolicy riskPolicy()
+        {
+            return baselinePolicy();
         }
     }
 }
