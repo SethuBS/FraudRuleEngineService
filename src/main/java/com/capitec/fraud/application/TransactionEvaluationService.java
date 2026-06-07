@@ -7,4 +7,9 @@ public interface TransactionEvaluationService
 {
 
     TransactionEvaluation evaluate(Transaction transaction);
+
+    default TransactionEvaluation evaluate(TransactionEvaluationCommand command)
+    {
+        return evaluate(command.transaction());
+    }
 }

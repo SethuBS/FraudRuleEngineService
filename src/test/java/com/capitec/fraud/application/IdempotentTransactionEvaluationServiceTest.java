@@ -49,14 +49,14 @@ class IdempotentTransactionEvaluationServiceTest
         when(persistenceService.findEvaluationByTransactionId(transaction.transactionId(), RISK_POLICY))
                 .thenReturn(Optional.empty());
         when(engine.evaluate(transaction)).thenReturn(evaluation);
-        when(persistenceService.persistProcessedEvaluation(evaluation))
+        when(persistenceService.persistProcessedEvaluation(evaluation, null, null))
                 .thenThrow(new DataIntegrityViolationException("duplicate event"));
 
         var result = service.evaluate(transaction);
 
         assertThat(result).isSameAs(evaluation);
         verify(engine).evaluate(transaction);
-        verify(persistenceService).persistProcessedEvaluation(evaluation);
+        verify(persistenceService).persistProcessedEvaluation(evaluation, null, null);
         verify(persistenceService, times(2)).findEvaluationByEventId(transaction.eventId(), RISK_POLICY);
         verify(persistenceService).findEvaluationByTransactionId(transaction.transactionId(), RISK_POLICY);
     }

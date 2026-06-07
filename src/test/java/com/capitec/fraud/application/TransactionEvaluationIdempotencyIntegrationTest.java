@@ -46,7 +46,9 @@ class TransactionEvaluationIdempotencyIntegrationTest
 
     private static final Instant TRANSACTION_TIME = Instant.parse("2026-06-07T08:00:00Z");
     private static final Instant EVALUATED_AT = Instant.parse("2026-06-07T09:00:00Z");
+    private static final Instant RAW_PAYLOAD_EXPIRES_AT = Instant.parse("2026-06-14T09:00:00Z");
     private static final String COMPLETED_STATUS = "COMPLETED";
+    private static final String SANITIZED_RAW_PAYLOAD = "{\"eventId\":\"event-1\"}";
     private static final String POSTGRES_IMAGE = System.getProperty(
             "test.postgres.image",
             System.getenv().getOrDefault("TEST_POSTGRES_IMAGE", "postgres:16-alpine"));
@@ -97,7 +99,10 @@ class TransactionEvaluationIdempotencyIntegrationTest
     {
         var transaction = sampleTransaction("event-1", "tx-1");
 
-        var firstEvaluation = transactionEvaluationService.evaluate(transaction);
+        var firstEvaluation = transactionEvaluationService.evaluate(new TransactionEvaluationCommand(
+                transaction,
+                SANITIZED_RAW_PAYLOAD,
+                RAW_PAYLOAD_EXPIRES_AT));
         var secondEvaluation = transactionEvaluationService.evaluate(transaction);
 
         assertThat(firstEvaluation.evaluatedAt()).isEqualTo(EVALUATED_AT);
@@ -113,6 +118,18 @@ class TransactionEvaluationIdempotencyIntegrationTest
                 {
                     assertThat(processedEvent.getProcessingStatus()).isEqualTo(COMPLETED_STATUS);
                     assertThat(processedEvent.getEvaluatedAt()).isEqualTo(EVALUATED_AT);
+                    assertThat(processedEvent.getSanitizedRawPayload())
+                            .contains("\"eventId\"")
+                            .contains("\"event-1\"");
+                    assertThat(processedEvent.getRawPayloadExpiresAt()).isEqualTo(RAW_PAYLOAD_EXPIRES_AT);
+                });
+        assertThat(transactionRepository.findByTransactionId("tx-1"))
+                .hasValueSatisfying(storedTransaction ->
+                {
+                    assertThat(storedTransaction.getSanitizedRawPayload())
+                            .contains("\"eventId\"")
+                            .contains("\"event-1\"");
+                    assertThat(storedTransaction.getRawPayloadExpiresAt()).isEqualTo(RAW_PAYLOAD_EXPIRES_AT);
                 });
     }
 

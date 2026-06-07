@@ -55,6 +55,12 @@ Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live 
 
 The seeder never deletes rows for rules that are no longer present in code. Keeping historical catalog rows protects audit trails and existing rule evaluation references.
 
+## Raw Payload Sanitization And Retention
+
+The service stores sanitized request payloads only for short-term debugging and audit support. Raw financial events can accidentally include card numbers, account numbers, authorization tokens, or personal identifiers that are not required for fraud evaluation. `RawPayloadSanitizer` redacts configured sensitive field names before payloads are written to `processed_events` or `transactions`.
+
+Payload records also include `raw_payload_expires_at`. This keeps retention explicit so cleanup can remove temporary payload context without deleting the durable transaction decision, rule evaluation, or alert history.
+
 ## Future Extraction Path
 
 If Kafka ingestion, analyst workflow, or multi-tenant security becomes necessary later, those capabilities should be added as adapters or bounded modules around the same core use cases before considering service extraction.

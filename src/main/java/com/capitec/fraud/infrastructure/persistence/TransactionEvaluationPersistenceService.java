@@ -67,15 +67,27 @@ public class TransactionEvaluationPersistenceService
     @Transactional
     public TransactionEvaluation persistProcessedEvaluation(TransactionEvaluation evaluation)
     {
+        return persistProcessedEvaluation(evaluation, null, null);
+    }
+
+    @Transactional
+    public TransactionEvaluation persistProcessedEvaluation(
+            TransactionEvaluation evaluation,
+            String sanitizedRawPayload,
+            Instant rawPayloadExpiresAt)
+    {
         processedEventRepository.saveAndFlush(new ProcessedEventEntity(
                 evaluation.transaction().eventId(),
                 evaluation.transaction().transactionId(),
                 idempotencyProperties.completedStatus(),
                 evaluation.evaluatedAt(),
-                null,
-                null));
+                sanitizedRawPayload,
+                rawPayloadExpiresAt));
 
-        var transaction = transactionRepository.saveAndFlush(transactionEntityMapper.toEntity(evaluation.transaction()));
+        var transaction = transactionRepository.saveAndFlush(transactionEntityMapper.toEntity(
+                evaluation.transaction(),
+                sanitizedRawPayload,
+                rawPayloadExpiresAt));
 
         persistRuleEvaluations(evaluation, transaction);
         persistEvaluationAlert(evaluation);
