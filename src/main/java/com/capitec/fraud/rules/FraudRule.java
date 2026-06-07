@@ -15,4 +15,6 @@ public interface FraudRule
     RiskScore defaultScore();
 
     RiskLevel severity();
+
+    RuleMatch evaluate(TransactionContext context);
 }

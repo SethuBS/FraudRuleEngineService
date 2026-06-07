@@ -9,6 +9,8 @@ import com.capitec.fraud.infrastructure.config.JpaAuditingConfiguration;
 import com.capitec.fraud.infrastructure.persistence.entity.FraudRuleEntity;
 import com.capitec.fraud.infrastructure.persistence.repository.FraudRuleRepository;
 import com.capitec.fraud.rules.FraudRule;
+import com.capitec.fraud.rules.RuleMatch;
+import com.capitec.fraud.rules.TransactionContext;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -168,5 +170,11 @@ class RuleDefinitionSeederIntegrationTest
             RiskScore defaultScore,
             RiskLevel severity) implements FraudRule
     {
+
+        @Override
+        public RuleMatch evaluate(TransactionContext context)
+        {
+            return RuleMatch.notMatched("Seeder test rule is not evaluated");
+        }
     }
 }

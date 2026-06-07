@@ -35,3 +35,9 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S1.06` | Implement RuleDefinitionSeeder for code/database sync | `P0 Critical` | `Sprint 1`, `Backend`, `Database`, `Reliability` | 9 June 2026 | 4h | Implemented on `feature/s1-06-rule-definition-seeder` |
 | `S1.07` | Implement sanitized raw payload storage and retention metadata | `P1 High` | `Sprint 1`, `Security`, `Database`, `Reliability` | 9 June 2026 | 4h | Implemented on `feature/s1-07-sanitized-raw-payload` |
 | `S1.08` | Implement transactional evaluation use case shell | `P0 Critical` | `Sprint 1`, `Backend`, `Architecture` | 9 June 2026 | 4h | Implemented on `feature/s1-08-evaluate-transaction-use-case` |
+
+## Sprint 2 Cards
+
+| Card | Title | Priority | Labels | Due | Estimate | Local status |
+| --- | --- | --- | --- | --- | ---: | --- |
+| `S2.01` | Implement code-first fraud rule contract and rule engine | `P0 Critical` | `Sprint 2`, `Backend`, `Architecture` | 10 June 2026 | 4h | Implemented on `feature/s2-01-rule-engine` |
