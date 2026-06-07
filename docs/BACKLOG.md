@@ -44,3 +44,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S2.02` | Implement High Value Transaction rule | `P0 Critical` | `Sprint 2`, `Backend`, `Testing` | 10 June 2026 | 2h | Implemented on `feature/s2-02-high-value-transaction-rule` |
 | `S2.03` | Implement Velocity Transaction rule | `P0 Critical` | `Sprint 2`, `Backend`, `Database`, `Testing` | 10 June 2026 | 5h | Implemented on `feature/s2-03-velocity-transaction-rule` |
 | `S2.04` | Implement Foreign Country Transaction rule | `P1 High` | `Sprint 2`, `Backend`, `Testing` | 11 June 2026 | 3h | Implemented on `feature/s2-04-foreign-country-transaction-rule` |
+| `S2.05` | Implement Risky Merchant Category rule | `P1 High` | `Sprint 2`, `Backend`, `Testing` | 11 June 2026 | 3h | Implemented on `feature/s2-05-risky-merchant-category-rule` |

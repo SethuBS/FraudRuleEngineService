@@ -79,6 +79,12 @@ The lookup queries transactions by customer or account using transaction timesta
 
 The current home-country source is configuration-backed for the assessment slice. Missing optional transaction country data is treated as a non-match with a clear explanation instead of failing the evaluation. A future customer profile lookup can replace the configured default through the transaction context without changing the HTTP contract.
 
+## Risky Merchant Category Rule
+
+`RiskyMerchantCategoryRule` flags transactions whose normalized merchant category appears in the configured risky category list. The `fraud.rules.risky-merchant-category.risk-categories` list, risk score, and severity are supplied through configuration so operations can tune risky merchant categories without a code change.
+
+Transaction categories are normalized to uppercase domain codes before comparison, so configured values and request values match case-insensitively while still using the same domain validation as the API contract.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
