@@ -6,8 +6,20 @@ import com.capitec.fraud.infrastructure.config.FraudSecurityProperties;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -16,21 +28,64 @@ public class SecurityConfig
 {
 
     private final FraudSecurityProperties properties;
+    private final ResourceLoader resourceLoader;
 
-    public SecurityConfig(FraudSecurityProperties properties)
+    public SecurityConfig(
+            FraudSecurityProperties properties,
+            ResourceLoader resourceLoader)
     {
         this.properties = properties;
+        this.resourceLoader = resourceLoader;
     }
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(properties.publicPathMatchers()).permitAll()
+                        .requestMatchers(properties.writePathMatchers()).hasAuthority(properties.writeAuthority())
+                        .requestMatchers(properties.readPathMatchers()).hasAuthority(properties.readAuthority())
                         .anyRequest().authenticated())
-                .httpBasic(withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
                 .build();
+    }
+
+    @Bean
+    JwtDecoder jwtDecoder()
+    {
+        var jwtProperties = properties.jwt();
+        if (!properties.jwtDecoderConfigured())
+        {
+            return token -> {
+                throw new JwtException("JWT decoder is not configured");
+            };
+        }
+
+        var decoder = jwtProperties.jwkSetUriConfigured()
+                ? NimbusJwtDecoder.withJwkSetUri(jwtProperties.jwkSetUri()).build()
+                : NimbusJwtDecoder.withPublicKey(new RsaPublicKeyLoader(resourceLoader)
+                        .load(jwtProperties.publicKeyLocation()))
+                        .build();
+        decoder.setJwtValidator(jwtValidator(jwtProperties));
+
+        return decoder;
+    }
+
+    private static OAuth2TokenValidator<Jwt> jwtValidator(FraudSecurityProperties.Jwt jwtProperties)
+    {
+        if (jwtProperties.issuerUriConfigured())
+        {
+            return new DelegatingOAuth2TokenValidator<>(
+                    JwtValidators.createDefault(),
+                    new JwtIssuerValidator(jwtProperties.issuerUri()),
+                    new JwtAudienceValidator(jwtProperties.audiences()));
+        }
+
+        return new DelegatingOAuth2TokenValidator<>(
+                new JwtTimestampValidator(),
+                new JwtAudienceValidator(jwtProperties.audiences()));
     }
 }

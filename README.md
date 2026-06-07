@@ -116,6 +116,15 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Alert list default page | `FRAUD_API_PAGINATION_DEFAULT_PAGE` | `0` |
 | Alert list default size | `FRAUD_API_PAGINATION_DEFAULT_SIZE` | `20` |
 | Alert list maximum size | `FRAUD_API_PAGINATION_MAX_SIZE` | `100` |
+| Security public paths | `FRAUD_SECURITY_PUBLIC_PATHS` | `/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
+| Security read paths | `FRAUD_SECURITY_READ_PATHS` | `/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation` |
+| Security write paths | `FRAUD_SECURITY_WRITE_PATHS` | `/api/v1/transaction-evaluations,/api/v1/transactions/evaluate` |
+| Security read scope | `FRAUD_SECURITY_READ_SCOPE` | `fraud.read` |
+| Security write scope | `FRAUD_SECURITY_WRITE_SCOPE` | `fraud.evaluate` |
+| JWT issuer | `FRAUD_SECURITY_JWT_ISSUER_URI` | `fraud-rule-engine-local` |
+| JWT audiences | `FRAUD_SECURITY_JWT_AUDIENCES` | `fraud-rule-engine-service` |
+| JWT JWK set URI | `FRAUD_SECURITY_JWT_JWK_SET_URI` | empty |
+| JWT public key location | `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION` | `classpath:security/local-dev-public-key.pem` |
 | Merchant category maximum length | `FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH` | `80` |
 | Medium risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM` | `25` |
 | High risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH` | `50` |
@@ -154,7 +163,9 @@ The target verification baseline includes:
 
 ## Security Model
 
-The target service is an OAuth2 Resource Server. It validates JWT bearer tokens and scope-based authorization. Token issuing, identity-provider setup, multi-tenant RBAC, and full analyst workflow security are outside the target submission scope.
+The service is an OAuth2 Resource Server. Protected API requests must include a JWT bearer token. Missing tokens and invalid tokens return `401`. Valid JWTs are authorized by scope: write endpoints require the configured `fraud.evaluate` scope by default, while retrieval endpoints require `fraud.read` by default. Authenticated requests without the required scope return `403`.
+
+JWT verification is configured with issuer, audience, and either `FRAUD_SECURITY_JWT_JWK_SET_URI` or `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION`. Local development defaults to the bundled RS256 public key resource so the service can validate signed reviewer tokens without contacting an identity provider. Production deployments should configure the real issuer, accepted audience, and JWKS endpoint or mounted public-key resource. The service does not issue production tokens; token issuing and identity-provider setup are outside the target submission scope.
 
 ## API Examples
 
