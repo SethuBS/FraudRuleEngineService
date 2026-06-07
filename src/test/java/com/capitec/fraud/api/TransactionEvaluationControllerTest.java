@@ -241,6 +241,7 @@ class TransactionEvaluationControllerTest
                 RiskScore.of(25),
                 RiskScore.of(50),
                 RiskScore.of(75),
+                RiskScore.of(100),
                 RiskLevel.MEDIUM,
                 RiskLevel.HIGH);
     }

@@ -24,6 +24,7 @@ class FraudEvaluationPropertiesTest
     void mapsConfiguredThresholdsToDomainRiskPolicy()
     {
         var properties = new FraudEvaluationProperties(
+                100,
                 new RiskThresholds(10, 20, 30),
                 new DecisionThresholds(RiskLevel.HIGH, RiskLevel.CRITICAL));
 
@@ -45,6 +46,7 @@ class FraudEvaluationPropertiesTest
 
             assertThat(riskPolicy.riskLevelFor(RiskScore.of(55))).isEqualTo(RiskLevel.HIGH);
             assertThat(riskPolicy.decisionFor(RiskScore.of(55))).isEqualTo(FraudDecision.FLAGGED);
+            assertThat(riskPolicy.cappedScore(RiskScore.of(101))).isEqualTo(RiskScore.of(100));
         });
     }
 }

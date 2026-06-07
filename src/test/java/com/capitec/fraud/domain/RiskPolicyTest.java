@@ -15,6 +15,7 @@ class RiskPolicyTest
                 RiskScore.of(10),
                 RiskScore.of(20),
                 RiskScore.of(30),
+                RiskScore.of(100),
                 RiskLevel.HIGH,
                 RiskLevel.CRITICAL);
 
@@ -30,9 +31,32 @@ class RiskPolicyTest
                 RiskScore.of(50),
                 RiskScore.of(25),
                 RiskScore.of(75),
+                RiskScore.of(100),
                 RiskLevel.MEDIUM,
                 RiskLevel.HIGH))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("mediumRiskMinimum");
+    }
+
+    @Test
+    void capsAggregatedMatchedRuleScoresAtConfiguredMaximum()
+    {
+        var policy = RiskPolicyFixtures.baselinePolicy();
+
+        var riskScore = policy.aggregateScore(java.util.List.of(
+                RuleEvaluationResult.matched(
+                        "HIGH_VALUE_TRANSACTION",
+                        "High Value Transaction",
+                        75,
+                        "Amount exceeded threshold",
+                        java.time.Instant.parse("2026-06-07T08:02:00Z")),
+                RuleEvaluationResult.matched(
+                        "VELOCITY_TRANSACTION",
+                        "Velocity Transaction",
+                        75,
+                        "Velocity threshold met",
+                        java.time.Instant.parse("2026-06-07T08:02:00Z"))));
+
+        assertThat(riskScore).isEqualTo(RiskScore.of(100));
     }
 }

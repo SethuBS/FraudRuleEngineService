@@ -63,6 +63,12 @@ Fraud rules are implemented by adding Spring beans that implement `FraudRule`. T
 
 Rule enabled state is read through an application port. The PostgreSQL adapter uses `fraud_rules.enabled` when a catalog row exists and falls back to the configured `fraud.rule-catalog.enabled-by-default` value for rule definitions that have not been seeded yet.
 
+## Risk Scoring And Decision Policy
+
+`FraudDecisionService` aggregates matched rule scores into the final `riskScore`, `riskLevel`, and `FraudDecision`. Unmatched rules remain in the audit trail but contribute `RiskScore.ZERO`, keeping the final score explainable from matched evidence only.
+
+Risk thresholds, decision thresholds, and maximum score are supplied through `fraud.evaluation.*` configuration. `RiskPolicy` caps aggregated scores at the configured maximum before mapping to risk level and decision, so duplicate/idempotent reconstruction and fresh evaluations produce the same deterministic outcome.
+
 ## High Value Transaction Rule
 
 `HighValueTransactionRule` flags transactions whose amount exceeds the configured threshold. The threshold, risk score, and severity are supplied through `fraud.rules.high-value-transaction.*` properties so deployment environments can tune the rule without changing Java code. Equal-to-threshold transactions are treated as within threshold; only values above the threshold match.

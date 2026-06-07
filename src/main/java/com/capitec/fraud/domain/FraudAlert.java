@@ -38,6 +38,10 @@ public record FraudAlert(
         {
             throw new IllegalArgumentException("decision must match riskScore");
         }
+        if (!riskPolicy.cappedScore(riskScore).equals(riskScore))
+        {
+            throw new IllegalArgumentException("riskScore must not exceed maximumRiskScore");
+        }
         if (matchedRules.stream().anyMatch(rule -> !rule.matched()))
         {
             throw new IllegalArgumentException("FraudAlert matchedRules cannot contain unmatched rule results");

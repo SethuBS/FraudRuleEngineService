@@ -70,7 +70,7 @@ class FraudRuleEngineTest
                 ruleCode -> !DISABLED_RULE_CODE.equals(ruleCode),
                 RecentTransactionLookup.empty(),
                 HistoricalAverageAmountLookup.empty(),
-                baselinePolicy(),
+                new FraudDecisionService(baselinePolicy()),
                 Clock.fixed(EVALUATED_AT, ZoneOffset.UTC));
 
         var evaluation = engine.evaluate(sampleTransaction());
@@ -113,6 +113,7 @@ class FraudRuleEngineTest
                 RiskScore.of(25),
                 RiskScore.of(50),
                 RiskScore.of(75),
+                RiskScore.of(100),
                 RiskLevel.MEDIUM,
                 RiskLevel.HIGH);
     }
