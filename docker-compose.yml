@@ -1,36 +1,50 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: ${POSTGRES_IMAGE:-postgres:16-alpine}
     environment:
-      POSTGRES_DB: fraud_rule_engine
-      POSTGRES_USER: fraud
-      POSTGRES_PASSWORD: fraud
+      POSTGRES_DB: ${POSTGRES_DB:-fraud_rule_engine}
+      POSTGRES_USER: ${POSTGRES_USER:-fraud}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fraud}
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - fraud-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fraud -d fraud_rule_engine"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   fraud-rule-engine:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fraud_rule_engine
-      SPRING_DATASOURCE_USERNAME: fraud
-      SPRING_DATASOURCE_PASSWORD: fraud
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-fraud_rule_engine}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-fraud}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-fraud}
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      FRAUD_SECURITY_JWT_ISSUER_URI: ${FRAUD_SECURITY_JWT_ISSUER_URI:-fraud-rule-engine-local}
+      FRAUD_SECURITY_JWT_AUDIENCES: ${FRAUD_SECURITY_JWT_AUDIENCES:-fraud-rule-engine-service}
+      FRAUD_SECURITY_JWT_JWK_SET_URI: ""
+      FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION: ${FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION:-classpath:security/local-dev-public-key.pem}
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE:-health,info,metrics,prometheus}
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75.0}
     ports:
       - "${APP_HOST_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health/readiness || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
 volumes:
   fraud-postgres-data:
