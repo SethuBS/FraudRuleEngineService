@@ -49,6 +49,8 @@ The pre-check is not enough on its own because two identical requests can pass t
 
 Processed event insertion, transaction persistence, rule evaluation rows, and alert creation run in one transaction. If any unique constraint rejects the write, the whole attempted duplicate write is rolled back.
 
+The integration test suite covers sequential duplicate `eventId`, sequential duplicate `transactionId`, and concurrent duplicate `eventId` submissions against PostgreSQL Testcontainers. These tests verify deterministic responses and confirm that only one processed event, transaction, rule-evaluation set, and fraud alert is stored when duplicates race.
+
 ## Transactional Evaluation Use Case
 
 `EvaluateTransactionUseCase` is the application entry point for transaction evaluation. The use case delegates the normal evaluation flow to a transactional operation that performs the duplicate pre-check, calls the current rule engine implementation, persists the transaction, stores every rule evaluation result, creates an alert when the decision requires one, and records the processed event in the same transaction.
