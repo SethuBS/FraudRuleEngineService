@@ -95,6 +95,12 @@ The reviewer JWT generator is deliberately local-only. `scripts/generate-jwt.ps1
 
 Transaction evaluation logs are emitted from the application use case, not the controller, so the log line can include the final decision summary without touching the raw request body. Logs include event id, transaction id, decision, risk score, risk level, and rule counts. They deliberately exclude JWTs, authorization headers, card/PAN data, raw account numbers, customer personal details, merchant details, full raw payloads, SQL text, and stack traces in client responses.
 
+## Actuator Observability
+
+Actuator exposure is intentionally narrow and configurable through `management.*` properties. Health, liveness, and readiness are public so container orchestrators can probe the service without a token. Readiness includes both `readinessState` and `db`, so the service becomes unready when PostgreSQL is unavailable.
+
+Detailed operational endpoints such as info, metrics, and Prometheus are exposed only when listed in `management.endpoints.web.exposure.include` and are protected by the configured `actuator:read` scope. Dangerous actuator endpoints such as environment, beans, configprops, heapdump, threaddump, loggers, and shutdown are not exposed by default. Health details and components use `when_authorized` visibility so public health responses stay shallow.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.

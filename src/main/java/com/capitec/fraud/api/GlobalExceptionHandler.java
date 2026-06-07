@@ -25,6 +25,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler
@@ -103,6 +104,14 @@ public class GlobalExceptionHandler
             HttpServletRequest request)
     {
         return errorResponse(NOT_FOUND, RESOURCE_NOT_FOUND_CODE, exception.getMessage(), List.of(), request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    ResponseEntity<ApiErrorResponse> handleNoResourceFound(
+            NoResourceFoundException exception,
+            HttpServletRequest request)
+    {
+        return errorResponse(NOT_FOUND, RESOURCE_NOT_FOUND_CODE, properties.resourceNotFoundMessage(), List.of(), request);
     }
 
     @ExceptionHandler({
