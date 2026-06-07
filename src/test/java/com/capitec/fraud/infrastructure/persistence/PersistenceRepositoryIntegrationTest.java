@@ -11,8 +11,10 @@ import com.capitec.fraud.domain.RuleEvaluationResult;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionCategory;
 import com.capitec.fraud.domain.TransactionEvaluation;
+import com.capitec.fraud.infrastructure.config.FraudIdempotencyConfiguration;
 import com.capitec.fraud.infrastructure.config.FraudPersistenceConfiguration;
 import com.capitec.fraud.infrastructure.config.JpaAuditingConfiguration;
+import com.capitec.fraud.infrastructure.config.RandomAlertIdGenerator;
 import com.capitec.fraud.infrastructure.persistence.entity.FraudRuleEntity;
 import com.capitec.fraud.infrastructure.persistence.entity.ProcessedEventEntity;
 import com.capitec.fraud.infrastructure.persistence.mapper.FraudAlertEntityMapper;
@@ -50,10 +52,12 @@ import org.testcontainers.utility.DockerImageName;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers(disabledWithoutDocker = true)
 @Import({
+    FraudIdempotencyConfiguration.class,
     FraudPersistenceConfiguration.class,
     FraudAlertEntityMapper.class,
     JpaAuditingConfiguration.class,
     PersistenceRepositoryIntegrationTest.FixedClockConfiguration.class,
+    RandomAlertIdGenerator.class,
     RuleEvaluationEntityMapper.class,
     TransactionEntityMapper.class,
     TransactionEvaluationPersistenceService.class
@@ -61,6 +65,7 @@ import org.testcontainers.utility.DockerImageName;
 @TestPropertySource(properties = {
     "spring.flyway.enabled=true",
     "spring.jpa.hibernate.ddl-auto=validate",
+    "fraud.idempotency.completed-status=COMPLETED",
     "fraud.persistence.default-alert-status=OPEN"
 })
 class PersistenceRepositoryIntegrationTest
