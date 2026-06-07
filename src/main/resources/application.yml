@@ -63,6 +63,13 @@ fraud:
       threshold-amount: ${FRAUD_RULES_HIGH_VALUE_TRANSACTION_THRESHOLD_AMOUNT:10000.00}
       default-score: ${FRAUD_RULES_HIGH_VALUE_TRANSACTION_DEFAULT_SCORE:55}
       severity: ${FRAUD_RULES_HIGH_VALUE_TRANSACTION_SEVERITY:HIGH}
+    risky-merchant-category:
+      risk-categories:
+        - GAMBLING
+        - CRYPTO
+        - JEWELRY
+      default-score: ${FRAUD_RULES_RISKY_MERCHANT_CATEGORY_DEFAULT_SCORE:30}
+      severity: ${FRAUD_RULES_RISKY_MERCHANT_CATEGORY_SEVERITY:MEDIUM}
     velocity-transaction:
       transaction-count-threshold: ${FRAUD_RULES_VELOCITY_TRANSACTION_COUNT_THRESHOLD:5}
       time-window-minutes: ${FRAUD_RULES_VELOCITY_TRANSACTION_TIME_WINDOW_MINUTES:10}

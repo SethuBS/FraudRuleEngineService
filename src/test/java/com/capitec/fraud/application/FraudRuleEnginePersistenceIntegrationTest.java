@@ -16,6 +16,7 @@ import com.capitec.fraud.infrastructure.persistence.repository.TransactionReposi
 import com.capitec.fraud.rules.ForeignCountryTransactionRule;
 import com.capitec.fraud.rules.FraudRule;
 import com.capitec.fraud.rules.HighValueTransactionRule;
+import com.capitec.fraud.rules.RiskyMerchantCategoryRule;
 import com.capitec.fraud.rules.RuleMatch;
 import com.capitec.fraud.rules.TransactionContext;
 import com.capitec.fraud.rules.VelocityTransactionRule;
@@ -53,6 +54,9 @@ import org.testcontainers.utility.DockerImageName;
     "fraud.rules.high-value-transaction.threshold-amount=1000.00",
     "fraud.rules.high-value-transaction.default-score=40",
     "fraud.rules.high-value-transaction.severity=HIGH",
+    "fraud.rules.risky-merchant-category.risk-categories=GAMBLING,CRYPTO,JEWELRY",
+    "fraud.rules.risky-merchant-category.default-score=30",
+    "fraud.rules.risky-merchant-category.severity=MEDIUM",
     "fraud.rules.velocity-transaction.transaction-count-threshold=5",
     "fraud.rules.velocity-transaction.time-window-minutes=10",
     "fraud.rules.velocity-transaction.default-score=35",
@@ -79,6 +83,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String UNMATCHED_RULE_DESCRIPTION = "Does not match integration transactions";
     private static final String UNMATCHED_RULE_EXPLANATION = "Transaction did not match integration rule";
     private static final RiskScore UNMATCHED_RULE_SCORE = RiskScore.of(10);
+    private static final String RISKY_MERCHANT_CATEGORY_RULE_EXPLANATION =
+            "Merchant category GROCERY is not configured as risky";
+    private static final RiskScore RISKY_MERCHANT_CATEGORY_RULE_SCORE = RiskScore.of(30);
     private static final String VELOCITY_RULE_EXPLANATION =
             "Observed 1 transactions within 10 minutes, within velocity threshold 5";
     private static final RiskScore VELOCITY_RULE_SCORE = RiskScore.of(35);
@@ -151,6 +158,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 HIGH_VALUE_RULE_EXPLANATION),
                         tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION),
                         tuple(
+                                RiskyMerchantCategoryRule.RULE_CODE,
+                                false,
+                                RISKY_MERCHANT_CATEGORY_RULE_SCORE,
+                                RISKY_MERCHANT_CATEGORY_RULE_EXPLANATION),
+                        tuple(
                                 VelocityTransactionRule.RULE_CODE,
                                 false,
                                 VELOCITY_RULE_SCORE,
@@ -180,6 +192,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 HIGH_VALUE_RULE_SCORE,
                                 HIGH_VALUE_RULE_EXPLANATION),
                         tuple(UNMATCHED_RULE_CODE, false, UNMATCHED_RULE_SCORE, UNMATCHED_RULE_EXPLANATION),
+                        tuple(
+                                RiskyMerchantCategoryRule.RULE_CODE,
+                                false,
+                                RISKY_MERCHANT_CATEGORY_RULE_SCORE,
+                                RISKY_MERCHANT_CATEGORY_RULE_EXPLANATION),
                         tuple(
                                 VelocityTransactionRule.RULE_CODE,
                                 false,
