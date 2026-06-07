@@ -101,6 +101,12 @@ Actuator exposure is intentionally narrow and configurable through `management.*
 
 Detailed operational endpoints such as info, metrics, and Prometheus are exposed only when listed in `management.endpoints.web.exposure.include` and are protected by the configured `actuator:read` scope. Dangerous actuator endpoints such as environment, beans, configprops, heapdump, threaddump, loggers, and shutdown are not exposed by default. Health details and components use `when_authorized` visibility so public health responses stay shallow.
 
+## Docker Runtime
+
+The Dockerfile uses a Gradle build stage and a Java 17 runtime stage. The final image contains only the bootable application jar, runs as the non-root `fraud` user, exposes port `8080`, and checks `/actuator/health/readiness`.
+
+`docker-compose.yml` starts PostgreSQL and the application together. PostgreSQL readiness is checked with `pg_isready`; the application waits for that healthy dependency, receives database and local JWT verification settings through environment variables, and runs Flyway migrations on startup. The Compose runtime uses the bundled local development public key for reviewer tokens, while production deployments should override JWT settings to use a real issuer and JWKS or mounted public key.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.

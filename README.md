@@ -155,14 +155,55 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Raw payload retention duration | `FRAUD_RAW_PAYLOAD_RETENTION_DURATION` | `P7D` |
 | Raw payload cleanup enabled | `FRAUD_RAW_PAYLOAD_CLEANUP_ENABLED` | `true` |
 | Raw payload cleanup cron | `FRAUD_RAW_PAYLOAD_CLEANUP_CRON` | `0 0 * * * *` |
+| Docker PostgreSQL image | `POSTGRES_IMAGE` | `postgres:16-alpine` |
+| Docker PostgreSQL database | `POSTGRES_DB` | `fraud_rule_engine` |
+| Docker PostgreSQL user | `POSTGRES_USER` | `fraud` |
+| Docker PostgreSQL password | `POSTGRES_PASSWORD` | `fraud` |
+| Docker app host port | `APP_HOST_PORT` | `8080` |
+| Docker PostgreSQL host port | `POSTGRES_HOST_PORT` | `5432` |
 | Test PostgreSQL image | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image` | `postgres:16-alpine` |
 
 ## Docker
 
-Docker runtime is part of the Definition of Done. The baseline Docker assets are present, and the full smoke-test path will be completed as the API and persistence cards land.
+Docker runtime is part of the Definition of Done. The Dockerfile builds the Spring Boot jar in a Gradle stage, copies only the bootable jar into a Java 17 runtime image, runs the application as a non-root user, exposes port `8080`, and uses the readiness probe for container health.
+
+Start the local reviewer runtime:
 
 ```bash
 docker compose up --build
+```
+
+Docker Compose starts PostgreSQL first, waits for `pg_isready`, then starts the service with database and local JWT validation environment variables. Flyway migrations run automatically on application startup. Optional Compose defaults are shown in [.env.example](.env.example); real `.env` files are ignored by Git.
+
+Health checks:
+
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/actuator/health/readiness
+```
+
+Generate a local reviewer token on the host, then call the API:
+
+```powershell
+$token = .\scripts\generate-jwt.ps1 -Profile system-ingestor
+curl.exe -X POST "http://localhost:8080/api/v1/transactions/evaluate" `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $token" `
+  -d "@examples/high-risk-transaction.json"
+```
+
+```bash
+TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
+curl -X POST "http://localhost:8080/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d @examples/high-risk-transaction.json
+```
+
+Stop the runtime:
+
+```bash
+docker compose down
 ```
 
 ## Database
