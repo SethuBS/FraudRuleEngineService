@@ -5,18 +5,20 @@ import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionEvaluation;
 import com.capitec.fraud.infrastructure.persistence.TransactionEvaluationPersistenceService;
 
-import org.springframework.dao.DataIntegrityViolationException;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class IdempotentTransactionEvaluationService implements TransactionEvaluationService
+class TransactionalEvaluationOperation
 {
 
     private final TransactionEvaluationEngine transactionEvaluationEngine;
     private final TransactionEvaluationPersistenceService persistenceService;
     private final RiskPolicy riskPolicy;
 
-    IdempotentTransactionEvaluationService(
+    TransactionalEvaluationOperation(
             TransactionEvaluationEngine transactionEvaluationEngine,
             TransactionEvaluationPersistenceService persistenceService,
             RiskPolicy riskPolicy)
@@ -26,13 +28,7 @@ class IdempotentTransactionEvaluationService implements TransactionEvaluationSer
         this.riskPolicy = riskPolicy;
     }
 
-    @Override
-    public TransactionEvaluation evaluate(Transaction transaction)
-    {
-        return evaluate(TransactionEvaluationCommand.withoutRawPayload(transaction));
-    }
-
-    @Override
+    @Transactional
     public TransactionEvaluation evaluate(TransactionEvaluationCommand command)
     {
         var transaction = command.transaction();
@@ -41,7 +37,8 @@ class IdempotentTransactionEvaluationService implements TransactionEvaluationSer
                 .orElseGet(() -> evaluateAndPersist(command));
     }
 
-    private java.util.Optional<TransactionEvaluation> findExistingEvaluation(Transaction transaction)
+    @Transactional(readOnly = true)
+    public Optional<TransactionEvaluation> findExistingEvaluation(Transaction transaction)
     {
         return persistenceService.findEvaluationByEventId(transaction.eventId(), riskPolicy)
                 .or(() -> persistenceService.findEvaluationByTransactionId(transaction.transactionId(), riskPolicy));
@@ -49,19 +46,11 @@ class IdempotentTransactionEvaluationService implements TransactionEvaluationSer
 
     private TransactionEvaluation evaluateAndPersist(TransactionEvaluationCommand command)
     {
-        var transaction = command.transaction();
-        var evaluation = transactionEvaluationEngine.evaluate(transaction);
+        var evaluation = transactionEvaluationEngine.evaluate(command.transaction());
 
-        try
-        {
-            return persistenceService.persistProcessedEvaluation(
-                    evaluation,
-                    command.sanitizedRawPayload(),
-                    command.rawPayloadExpiresAt());
-        }
-        catch (DataIntegrityViolationException ex)
-        {
-            return findExistingEvaluation(transaction).orElseThrow(() -> ex);
-        }
+        return persistenceService.persistProcessedEvaluation(
+                evaluation,
+                command.sanitizedRawPayload(),
+                command.rawPayloadExpiresAt());
     }
 }

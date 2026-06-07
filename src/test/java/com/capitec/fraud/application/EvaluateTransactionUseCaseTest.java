@@ -1,8 +1,8 @@
 package com.capitec.fraud.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +13,6 @@ import com.capitec.fraud.domain.RiskScore;
 import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionCategory;
 import com.capitec.fraud.domain.TransactionEvaluation;
-import com.capitec.fraud.infrastructure.persistence.TransactionEvaluationPersistenceService;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -23,7 +22,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 
-class IdempotentTransactionEvaluationServiceTest
+class EvaluateTransactionUseCaseTest
 {
 
     private static final Instant TRANSACTION_TIME = Instant.parse("2026-06-07T08:00:00Z");
@@ -38,27 +37,36 @@ class IdempotentTransactionEvaluationServiceTest
     @Test
     void duplicateRaceReturnsPreviousEvaluationWhenConstraintWins()
     {
-        var engine = mock(TransactionEvaluationEngine.class);
-        var persistenceService = mock(TransactionEvaluationPersistenceService.class);
-        var service = new IdempotentTransactionEvaluationService(engine, persistenceService, RISK_POLICY);
+        var operation = mock(TransactionalEvaluationOperation.class);
+        var useCase = new EvaluateTransactionUseCase(operation);
         var transaction = sampleTransaction("event-1", "tx-1");
+        var command = TransactionEvaluationCommand.withoutRawPayload(transaction);
         var evaluation = TransactionEvaluation.from(transaction, List.of(), RISK_POLICY, EVALUATED_AT);
 
-        when(persistenceService.findEvaluationByEventId(transaction.eventId(), RISK_POLICY))
-                .thenReturn(Optional.empty(), Optional.of(evaluation));
-        when(persistenceService.findEvaluationByTransactionId(transaction.transactionId(), RISK_POLICY))
-                .thenReturn(Optional.empty());
-        when(engine.evaluate(transaction)).thenReturn(evaluation);
-        when(persistenceService.persistProcessedEvaluation(evaluation, null, null))
-                .thenThrow(new DataIntegrityViolationException("duplicate event"));
+        when(operation.evaluate(command)).thenThrow(new DataIntegrityViolationException("duplicate event"));
+        when(operation.findExistingEvaluation(transaction)).thenReturn(Optional.of(evaluation));
 
-        var result = service.evaluate(transaction);
+        var result = useCase.evaluate(command);
 
         assertThat(result).isSameAs(evaluation);
-        verify(engine).evaluate(transaction);
-        verify(persistenceService).persistProcessedEvaluation(evaluation, null, null);
-        verify(persistenceService, times(2)).findEvaluationByEventId(transaction.eventId(), RISK_POLICY);
-        verify(persistenceService).findEvaluationByTransactionId(transaction.transactionId(), RISK_POLICY);
+        verify(operation).evaluate(command);
+        verify(operation).findExistingEvaluation(transaction);
+    }
+
+    @Test
+    void duplicateRaceWithoutStoredEvaluationThrowsSafeApplicationException()
+    {
+        var operation = mock(TransactionalEvaluationOperation.class);
+        var useCase = new EvaluateTransactionUseCase(operation);
+        var transaction = sampleTransaction("event-1", "tx-1");
+        var command = TransactionEvaluationCommand.withoutRawPayload(transaction);
+
+        when(operation.evaluate(command)).thenThrow(new DataIntegrityViolationException("duplicate event"));
+        when(operation.findExistingEvaluation(transaction)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> useCase.evaluate(command))
+                .isInstanceOf(TransactionEvaluationException.class)
+                .hasMessage("Transaction evaluation could not be completed safely");
     }
 
     private static Transaction sampleTransaction(String eventId, String transactionId)

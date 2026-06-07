@@ -49,6 +49,12 @@ The pre-check is not enough on its own because two identical requests can pass t
 
 Processed event insertion, transaction persistence, rule evaluation rows, and alert creation run in one transaction. If any unique constraint rejects the write, the whole attempted duplicate write is rolled back.
 
+## Transactional Evaluation Use Case
+
+`EvaluateTransactionUseCase` is the application entry point for transaction evaluation. The use case delegates the normal evaluation flow to a transactional operation that performs the duplicate pre-check, calls the current rule engine implementation, persists the transaction, stores every rule evaluation result, creates an alert when the decision requires one, and records the processed event in the same transaction.
+
+The outer use case catches database duplicate-key races only after the failed transaction has rolled back. It then performs a read-only lookup of the previously stored evaluation and returns that deterministic result. If no stored evaluation can be found, the database exception is translated into a safe application exception instead of exposing persistence internals.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
