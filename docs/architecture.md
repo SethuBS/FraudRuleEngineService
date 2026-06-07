@@ -161,6 +161,8 @@ The service stores sanitized request payloads only for short-term debugging and 
 
 Payload records also include `raw_payload_expires_at`. This keeps retention explicit so cleanup can remove temporary payload context without deleting the durable transaction decision, rule evaluation, or alert history.
 
+`RawPayloadCleanupJob` runs on the configured cron schedule and delegates to a transactional cleanup service. The cleanup only nulls `sanitized_raw_payload` and `raw_payload_expires_at` on expired `transactions` and `processed_events` rows. It leaves transaction identity, decision reconstruction data, processed-event status, rule evaluations, and alerts intact. The job logs counts only and never logs payload contents.
+
 ## Future Extraction Path
 
 If Kafka ingestion, analyst workflow, or multi-tenant security becomes necessary later, those capabilities should be added as adapters or bounded modules around the same core use cases before considering service extraction.
