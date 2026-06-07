@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.capitec.fraud.api.ApiCorrelationIdProvider;
 import com.capitec.fraud.infrastructure.config.FraudApiConfiguration;
+import com.capitec.fraud.infrastructure.config.FraudObservabilityConfiguration;
 import com.capitec.fraud.infrastructure.config.FraudSecurityConfiguration;
 
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @WebMvcTest(SecurityConfigTest.SecurityTestController.class)
 @Import({
     FraudApiConfiguration.class,
+    FraudObservabilityConfiguration.class,
     FraudSecurityConfiguration.class,
     ApiCorrelationIdProvider.class,
     ApiSecurityErrorHandler.class,
@@ -60,7 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
 class SecurityConfigTest
 {
 
-    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_HEADER = "X-Correlation-ID";
     private static final String CORRELATION_ID = "security-correlation-id";
     private static final String TRANSACTION_EVALUATE_AUTHORITY = "SCOPE_transactions:evaluate";
     private static final String FRAUD_ALERTS_READ_AUTHORITY = "SCOPE_fraud-alerts:read";

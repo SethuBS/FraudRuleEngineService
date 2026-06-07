@@ -35,6 +35,10 @@ management:
 server:
   port: ${SERVER_PORT:8080}
 
+logging:
+  pattern:
+    level: "%5p [correlationId=%X{correlationId}]"
+
 fraud:
   api:
     paths:
@@ -50,7 +54,7 @@ fraud:
       default-size: ${FRAUD_API_PAGINATION_DEFAULT_SIZE:20}
       max-size: ${FRAUD_API_PAGINATION_MAX_SIZE:100}
     errors:
-      correlation-id-header: ${FRAUD_API_ERRORS_CORRELATION_ID_HEADER:X-Correlation-Id}
+      correlation-id-header: ${FRAUD_API_ERRORS_CORRELATION_ID_HEADER:X-Correlation-ID}
       validation-failed-message: ${FRAUD_API_ERRORS_VALIDATION_FAILED_MESSAGE:Request validation failed}
       malformed-request-message: ${FRAUD_API_ERRORS_MALFORMED_REQUEST_MESSAGE:Request body or parameters are invalid}
       invalid-parameter-message: ${FRAUD_API_ERRORS_INVALID_PARAMETER_MESSAGE:Request parameter has an invalid value}
@@ -62,6 +66,9 @@ fraud:
       merchant-category-max-length: ${FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH:80}
   time:
     zone-id: ${FRAUD_TIME_ZONE_ID:UTC}
+  observability:
+    correlation-id-mdc-key: ${FRAUD_OBSERVABILITY_CORRELATION_ID_MDC_KEY:correlationId}
+    correlation-id-max-length: ${FRAUD_OBSERVABILITY_CORRELATION_ID_MAX_LENGTH:128}
   evaluation:
     maximum-score: ${FRAUD_EVALUATION_MAXIMUM_SCORE:100}
     risk-thresholds:

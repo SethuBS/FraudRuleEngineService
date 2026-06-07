@@ -25,6 +25,7 @@ import com.capitec.fraud.domain.Transaction;
 import com.capitec.fraud.domain.TransactionCategory;
 import com.capitec.fraud.domain.TransactionEvaluation;
 import com.capitec.fraud.infrastructure.config.FraudApiConfiguration;
+import com.capitec.fraud.infrastructure.config.FraudObservabilityConfiguration;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -49,6 +50,7 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 @Import({
     FraudApiConfiguration.class,
+    FraudObservabilityConfiguration.class,
     ApiCorrelationIdProvider.class,
     GlobalExceptionHandler.class
 })
@@ -65,7 +67,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class FraudRetrievalControllerTest
 {
 
-    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_HEADER = "X-Correlation-ID";
     private static final String CORRELATION_ID = "retrieval-correlation-id";
     private static final UUID ALERT_ID = UUID.fromString("b3ed20ca-bac6-45dc-a37e-d61001ee37ab");
     private static final Instant ALERT_CREATED_AT = Instant.parse("2026-06-07T10:00:00Z");
