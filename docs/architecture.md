@@ -85,6 +85,12 @@ The current home-country source is configuration-backed for the assessment slice
 
 Transaction categories are normalized to uppercase domain codes before comparison, so configured values and request values match case-insensitively while still using the same domain validation as the API contract.
 
+## Suspicious Merchant Rule
+
+`SuspiciousMerchantRule` flags transactions whose merchant ID or merchant name matches configured suspicious merchant indicators. The `fraud.rules.suspicious-merchant.merchant-ids` and `fraud.rules.suspicious-merchant.merchant-name-fragments` lists, risk score, and severity are supplied through configuration so merchant watchlists can change without Java code changes.
+
+Merchant IDs and merchant names are trimmed, whitespace-normalized, and uppercased before comparison. Missing optional merchant names produce a safe non-match unless the configured merchant ID list matches the transaction merchant ID.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.

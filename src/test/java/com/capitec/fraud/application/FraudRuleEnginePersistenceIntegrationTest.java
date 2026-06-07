@@ -18,6 +18,7 @@ import com.capitec.fraud.rules.FraudRule;
 import com.capitec.fraud.rules.HighValueTransactionRule;
 import com.capitec.fraud.rules.RiskyMerchantCategoryRule;
 import com.capitec.fraud.rules.RuleMatch;
+import com.capitec.fraud.rules.SuspiciousMerchantRule;
 import com.capitec.fraud.rules.TransactionContext;
 import com.capitec.fraud.rules.VelocityTransactionRule;
 
@@ -57,6 +58,10 @@ import org.testcontainers.utility.DockerImageName;
     "fraud.rules.risky-merchant-category.risk-categories=GAMBLING,CRYPTO,JEWELRY",
     "fraud.rules.risky-merchant-category.default-score=30",
     "fraud.rules.risky-merchant-category.severity=MEDIUM",
+    "fraud.rules.suspicious-merchant.merchant-ids=MERCHANT-WATCHLIST",
+    "fraud.rules.suspicious-merchant.merchant-name-fragments=WATCHLISTED,HIGH RISK TRADERS",
+    "fraud.rules.suspicious-merchant.default-score=50",
+    "fraud.rules.suspicious-merchant.severity=HIGH",
     "fraud.rules.velocity-transaction.transaction-count-threshold=5",
     "fraud.rules.velocity-transaction.time-window-minutes=10",
     "fraud.rules.velocity-transaction.default-score=35",
@@ -86,6 +91,9 @@ class FraudRuleEnginePersistenceIntegrationTest
     private static final String RISKY_MERCHANT_CATEGORY_RULE_EXPLANATION =
             "Merchant category GROCERY is not configured as risky";
     private static final RiskScore RISKY_MERCHANT_CATEGORY_RULE_SCORE = RiskScore.of(30);
+    private static final String SUSPICIOUS_MERCHANT_RULE_EXPLANATION =
+            "Merchant ID/name did not match configured suspicious merchants";
+    private static final RiskScore SUSPICIOUS_MERCHANT_RULE_SCORE = RiskScore.of(50);
     private static final String VELOCITY_RULE_EXPLANATION =
             "Observed 1 transactions within 10 minutes, within velocity threshold 5";
     private static final RiskScore VELOCITY_RULE_SCORE = RiskScore.of(35);
@@ -163,6 +171,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 RISKY_MERCHANT_CATEGORY_RULE_SCORE,
                                 RISKY_MERCHANT_CATEGORY_RULE_EXPLANATION),
                         tuple(
+                                SuspiciousMerchantRule.RULE_CODE,
+                                false,
+                                SUSPICIOUS_MERCHANT_RULE_SCORE,
+                                SUSPICIOUS_MERCHANT_RULE_EXPLANATION),
+                        tuple(
                                 VelocityTransactionRule.RULE_CODE,
                                 false,
                                 VELOCITY_RULE_SCORE,
@@ -197,6 +210,11 @@ class FraudRuleEnginePersistenceIntegrationTest
                                 false,
                                 RISKY_MERCHANT_CATEGORY_RULE_SCORE,
                                 RISKY_MERCHANT_CATEGORY_RULE_EXPLANATION),
+                        tuple(
+                                SuspiciousMerchantRule.RULE_CODE,
+                                false,
+                                SUSPICIOUS_MERCHANT_RULE_SCORE,
+                                SUSPICIOUS_MERCHANT_RULE_EXPLANATION),
                         tuple(
                                 VelocityTransactionRule.RULE_CODE,
                                 false,
