@@ -65,11 +65,17 @@ fraud:
   persistence:
     default-alert-status: ${FRAUD_PERSISTENCE_DEFAULT_ALERT_STATUS:OPEN}
   security:
-    public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html}
-    read-paths: ${FRAUD_SECURITY_READ_PATHS:/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation}
-    write-paths: ${FRAUD_SECURITY_WRITE_PATHS:/api/v1/transaction-evaluations,/api/v1/transactions/evaluate}
-    read-scope: ${FRAUD_SECURITY_READ_SCOPE:fraud.read}
-    write-scope: ${FRAUD_SECURITY_WRITE_SCOPE:fraud.evaluate}
+    public-paths: ${FRAUD_SECURITY_PUBLIC_PATHS:/actuator/health,/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html}
+    transaction-evaluate-paths: ${FRAUD_SECURITY_TRANSACTION_EVALUATE_PATHS:/api/v1/transaction-evaluations,/api/v1/transactions/evaluate}
+    fraud-alerts-read-paths: ${FRAUD_SECURITY_FRAUD_ALERTS_READ_PATHS:/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation}
+    rules-read-paths: ${FRAUD_SECURITY_RULES_READ_PATHS:/api/v1/rules,/api/v1/rules/**}
+    rules-admin-paths: ${FRAUD_SECURITY_RULES_ADMIN_PATHS:/api/v1/rules/admin,/api/v1/rules/admin/**}
+    actuator-read-paths: ${FRAUD_SECURITY_ACTUATOR_READ_PATHS:/actuator,/actuator/info,/actuator/metrics,/actuator/metrics/**,/actuator/prometheus}
+    transaction-evaluate-scope: ${FRAUD_SECURITY_TRANSACTION_EVALUATE_SCOPE:transactions:evaluate}
+    fraud-alerts-read-scope: ${FRAUD_SECURITY_FRAUD_ALERTS_READ_SCOPE:fraud-alerts:read}
+    rules-read-scope: ${FRAUD_SECURITY_RULES_READ_SCOPE:rules:read}
+    rules-admin-scope: ${FRAUD_SECURITY_RULES_ADMIN_SCOPE:rules:admin}
+    actuator-read-scope: ${FRAUD_SECURITY_ACTUATOR_READ_SCOPE:actuator:read}
     scope-authority-prefix: ${FRAUD_SECURITY_SCOPE_AUTHORITY_PREFIX:SCOPE_}
     jwt:
       issuer-uri: ${FRAUD_SECURITY_JWT_ISSUER_URI:fraud-rule-engine-local}

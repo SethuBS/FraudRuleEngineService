@@ -79,7 +79,9 @@ Springdoc publishes the local OpenAPI document and Swagger UI using metadata fro
 
 The service validates bearer tokens as an OAuth2 Resource Server and does not issue production tokens. JWT verification is configured through `fraud.security.jwt.*`: issuer, accepted audiences, and either a JWKS URI or an RS256 public-key resource. Local development uses a classpath public key by default, while production can point at an external identity provider without changing code.
 
-Authorization is path and scope based. Public paths are configured through `fraud.security.public-paths`. Fraud evaluation write paths require the configured write scope, while fraud alert and stored-evaluation retrieval paths require the configured read scope. Requests without a token or with an invalid token return `401`; authenticated requests without the required scope are rejected before controller logic executes.
+Authorization is enforced at both URL and method level. Public paths are configured through `fraud.security.public-paths`. Transaction evaluation requires the configured `transactions:evaluate` scope, fraud alert and stored-evaluation retrieval require `fraud-alerts:read`, future rule catalog retrieval is prepared for `rules:read`, future rule administration is prepared for `rules:admin`, and actuator detail endpoints require `actuator:read`. Requests without a token or with an invalid token return `401`; authenticated requests without the required scope return `403`.
+
+Only health endpoints and local API documentation paths are public by default. Actuator details such as info, metrics, and Prometheus are protected, and `application-prod.yml` disables OpenAPI and Swagger UI for production deployments.
 
 ## Code-First Rule Engine
 

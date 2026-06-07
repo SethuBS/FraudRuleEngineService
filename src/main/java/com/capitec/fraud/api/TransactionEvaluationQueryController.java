@@ -5,6 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.capitec.fraud.api.dto.TransactionEvaluationResponse;
 import com.capitec.fraud.application.FraudRetrievalService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +49,7 @@ public class TransactionEvaluationQueryController
                         schema = @Schema(implementation = ValidationErrorResponse.class)))
     })
     @GetMapping(ApiPaths.TRANSACTION_FRAUD_EVALUATION)
+    @PreAuthorize("@fraudSecurityAuthorizer.canReadFraudAlerts(authentication)")
     public TransactionEvaluationResponse fraudEvaluation(
             @Parameter(description = "Transaction id from the original evaluation request.")
             @PathVariable String transactionId)

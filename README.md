@@ -116,11 +116,17 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Alert list default page | `FRAUD_API_PAGINATION_DEFAULT_PAGE` | `0` |
 | Alert list default size | `FRAUD_API_PAGINATION_DEFAULT_SIZE` | `20` |
 | Alert list maximum size | `FRAUD_API_PAGINATION_MAX_SIZE` | `100` |
-| Security public paths | `FRAUD_SECURITY_PUBLIC_PATHS` | `/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
-| Security read paths | `FRAUD_SECURITY_READ_PATHS` | `/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation` |
-| Security write paths | `FRAUD_SECURITY_WRITE_PATHS` | `/api/v1/transaction-evaluations,/api/v1/transactions/evaluate` |
-| Security read scope | `FRAUD_SECURITY_READ_SCOPE` | `fraud.read` |
-| Security write scope | `FRAUD_SECURITY_WRITE_SCOPE` | `fraud.evaluate` |
+| Security public paths | `FRAUD_SECURITY_PUBLIC_PATHS` | `/actuator/health,/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
+| Transaction evaluation paths | `FRAUD_SECURITY_TRANSACTION_EVALUATE_PATHS` | `/api/v1/transaction-evaluations,/api/v1/transactions/evaluate` |
+| Fraud alert read paths | `FRAUD_SECURITY_FRAUD_ALERTS_READ_PATHS` | `/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation` |
+| Rule read paths | `FRAUD_SECURITY_RULES_READ_PATHS` | `/api/v1/rules,/api/v1/rules/**` |
+| Rule admin paths | `FRAUD_SECURITY_RULES_ADMIN_PATHS` | `/api/v1/rules/admin,/api/v1/rules/admin/**` |
+| Actuator read paths | `FRAUD_SECURITY_ACTUATOR_READ_PATHS` | `/actuator,/actuator/info,/actuator/metrics,/actuator/metrics/**,/actuator/prometheus` |
+| Transaction evaluation scope | `FRAUD_SECURITY_TRANSACTION_EVALUATE_SCOPE` | `transactions:evaluate` |
+| Fraud alert read scope | `FRAUD_SECURITY_FRAUD_ALERTS_READ_SCOPE` | `fraud-alerts:read` |
+| Rule read scope | `FRAUD_SECURITY_RULES_READ_SCOPE` | `rules:read` |
+| Rule admin scope | `FRAUD_SECURITY_RULES_ADMIN_SCOPE` | `rules:admin` |
+| Actuator read scope | `FRAUD_SECURITY_ACTUATOR_READ_SCOPE` | `actuator:read` |
 | JWT issuer | `FRAUD_SECURITY_JWT_ISSUER_URI` | `fraud-rule-engine-local` |
 | JWT audiences | `FRAUD_SECURITY_JWT_AUDIENCES` | `fraud-rule-engine-service` |
 | JWT JWK set URI | `FRAUD_SECURITY_JWT_JWK_SET_URI` | empty |
@@ -163,13 +169,13 @@ The target verification baseline includes:
 
 ## Security Model
 
-The service is an OAuth2 Resource Server. Protected API requests must include a JWT bearer token. Missing tokens and invalid tokens return `401`. Valid JWTs are authorized by scope: write endpoints require the configured `fraud.evaluate` scope by default, while retrieval endpoints require `fraud.read` by default. Authenticated requests without the required scope return `403`.
+The service is an OAuth2 Resource Server. Protected API requests must include a JWT bearer token. Missing tokens and invalid tokens return `401`. Valid JWTs are authorized by scope at both URL and method level. Transaction evaluation requires `transactions:evaluate`; fraud alert and stored evaluation retrieval require `fraud-alerts:read`; rule catalog paths are prepared for `rules:read`; rule admin paths are prepared for `rules:admin`; actuator details require `actuator:read`. Authenticated requests without the required scope return `403`.
 
 JWT verification is configured with issuer, audience, and either `FRAUD_SECURITY_JWT_JWK_SET_URI` or `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION`. Local development defaults to the bundled RS256 public key resource so the service can validate signed reviewer tokens without contacting an identity provider. Production deployments should configure the real issuer, accepted audience, and JWKS endpoint or mounted public-key resource. The service does not issue production tokens; token issuing and identity-provider setup are outside the target submission scope.
 
 ## API Examples
 
-Swagger UI is available locally at `http://localhost:8080/swagger-ui/index.html`, and the OpenAPI JSON is available at `http://localhost:8080/v3/api-docs`. The `prod` profile disables both endpoints through `application-prod.yml`.
+Swagger UI is available locally at `http://localhost:8080/swagger-ui/index.html`, and the OpenAPI JSON is available at `http://localhost:8080/v3/api-docs`. The `prod` profile disables both endpoints through `application-prod.yml`, so Swagger remains a local-reviewer surface rather than a production API surface.
 
 Transaction evaluation accepts a stable categorized transaction contract. Fraud rules can change internally without changing the request shape or the generic matched-rule response list.
 
