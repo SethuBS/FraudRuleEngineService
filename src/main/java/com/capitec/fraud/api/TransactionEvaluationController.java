@@ -15,6 +15,7 @@ import java.time.Clock;
 import java.time.Instant;
 
 import jakarta.validation.Validator;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,6 +87,7 @@ public class TransactionEvaluationController
                     mediaType = APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = TransactionEvaluationRequest.class)))
     @PostMapping
+    @PreAuthorize("@fraudSecurityAuthorizer.canEvaluateTransactions(authentication)")
     public TransactionEvaluationResponse evaluate(@RequestBody String rawPayload)
     {
         var request = toRequest(rawPayload);

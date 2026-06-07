@@ -13,10 +13,16 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "fraud.security")
 public record FraudSecurityProperties(
         @NotEmpty List<@NotBlank String> publicPaths,
-        @NotEmpty List<@NotBlank String> readPaths,
-        @NotEmpty List<@NotBlank String> writePaths,
-        @NotBlank String readScope,
-        @NotBlank String writeScope,
+        @NotEmpty List<@NotBlank String> transactionEvaluatePaths,
+        @NotEmpty List<@NotBlank String> fraudAlertsReadPaths,
+        @NotEmpty List<@NotBlank String> rulesReadPaths,
+        @NotEmpty List<@NotBlank String> rulesAdminPaths,
+        @NotEmpty List<@NotBlank String> actuatorReadPaths,
+        @NotBlank String transactionEvaluateScope,
+        @NotBlank String fraudAlertsReadScope,
+        @NotBlank String rulesReadScope,
+        @NotBlank String rulesAdminScope,
+        @NotBlank String actuatorReadScope,
         @NotBlank String scopeAuthorityPrefix,
         @Valid @NotNull Jwt jwt)
 {
@@ -26,24 +32,59 @@ public record FraudSecurityProperties(
         return publicPaths.toArray(String[]::new);
     }
 
-    public String[] readPathMatchers()
+    public String[] transactionEvaluatePathMatchers()
     {
-        return readPaths.toArray(String[]::new);
+        return transactionEvaluatePaths.toArray(String[]::new);
     }
 
-    public String[] writePathMatchers()
+    public String[] fraudAlertsReadPathMatchers()
     {
-        return writePaths.toArray(String[]::new);
+        return fraudAlertsReadPaths.toArray(String[]::new);
     }
 
-    public String readAuthority()
+    public String[] rulesReadPathMatchers()
     {
-        return scopeAuthorityPrefix + readScope;
+        return rulesReadPaths.toArray(String[]::new);
     }
 
-    public String writeAuthority()
+    public String[] rulesAdminPathMatchers()
     {
-        return scopeAuthorityPrefix + writeScope;
+        return rulesAdminPaths.toArray(String[]::new);
+    }
+
+    public String[] actuatorReadPathMatchers()
+    {
+        return actuatorReadPaths.toArray(String[]::new);
+    }
+
+    public String transactionEvaluateAuthority()
+    {
+        return authority(transactionEvaluateScope);
+    }
+
+    public String fraudAlertsReadAuthority()
+    {
+        return authority(fraudAlertsReadScope);
+    }
+
+    public String rulesReadAuthority()
+    {
+        return authority(rulesReadScope);
+    }
+
+    public String rulesAdminAuthority()
+    {
+        return authority(rulesAdminScope);
+    }
+
+    public String actuatorReadAuthority()
+    {
+        return authority(actuatorReadScope);
+    }
+
+    private String authority(String scope)
+    {
+        return scopeAuthorityPrefix + scope;
     }
 
     public boolean jwtDecoderConfigured()

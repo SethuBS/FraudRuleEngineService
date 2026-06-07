@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,6 +64,7 @@ public class FraudAlertController
                         schema = @Schema(implementation = ValidationErrorResponse.class)))
     })
     @GetMapping(ApiPaths.FRAUD_ALERTS)
+    @PreAuthorize("@fraudSecurityAuthorizer.canReadFraudAlerts(authentication)")
     public PagedResponse<FraudAlertResponse> fraudAlerts(
             @Parameter(description = "Filter alerts by customer id.")
             @RequestParam(required = false) String customerId,
@@ -115,6 +117,7 @@ public class FraudAlertController
                         schema = @Schema(implementation = ValidationErrorResponse.class)))
     })
     @GetMapping(ApiPaths.FRAUD_ALERT_DETAIL)
+    @PreAuthorize("@fraudSecurityAuthorizer.canReadFraudAlerts(authentication)")
     public FraudAlertResponse fraudAlert(
             @Parameter(description = "Fraud alert id.")
             @PathVariable UUID alertId)
