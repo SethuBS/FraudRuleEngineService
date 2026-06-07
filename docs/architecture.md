@@ -67,6 +67,12 @@ Rule enabled state is read through an application port. The PostgreSQL adapter u
 
 `HighValueTransactionRule` flags transactions whose amount exceeds the configured threshold. The threshold, risk score, and severity are supplied through `fraud.rules.high-value-transaction.*` properties so deployment environments can tune the rule without changing Java code. Equal-to-threshold transactions are treated as within threshold; only values above the threshold match.
 
+## Velocity Transaction Rule
+
+`VelocityTransactionRule` flags customers or accounts that exceed the configured transaction count within the configured minute window. The rule reads recent transaction history from `TransactionContext`, which keeps the rule unit-testable while allowing production to supply database-backed history through `DatabaseRecentTransactionLookup`.
+
+The lookup queries transactions by customer or account using transaction timestamps, excludes the current transaction id, and is supported by customer/account plus transaction timestamp indexes. The rule reason includes the observed count, configured time window, and configured threshold for audit readability.
+
 ## Rule Catalog Synchronization
 
 Fraud rules are code-first. At startup, `RuleDefinitionSeeder` reads every live `FraudRule` bean and upserts its metadata into `fraud_rules`. Code-owned fields such as name, description, severity, and score are refreshed when a rule class changes. Operational fields such as `enabled` are preserved on existing rows so disabling a rule in the database is not undone by a deployment.
