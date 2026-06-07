@@ -14,6 +14,7 @@ public record FraudApiErrorProperties(
         @NotBlank String duplicateEvaluationMessage,
         @NotBlank String authenticationRequiredMessage,
         @NotBlank String forbiddenMessage,
-        @NotBlank String internalServerErrorMessage)
+        @NotBlank String internalServerErrorMessage,
+        @NotBlank String resourceNotFoundMessage)
 {
 }

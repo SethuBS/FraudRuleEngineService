@@ -105,7 +105,8 @@ class CorrelationIdFilterTest
                 "Duplicate event or transaction could not be resolved safely",
                 "Authentication is required",
                 "Required scope is missing",
-                "An unexpected error occurred");
+                "An unexpected error occurred",
+                "Resource was not found");
     }
 
     private static FilterChain capturingChain(AtomicReference<String> mdcValueDuringRequest)
