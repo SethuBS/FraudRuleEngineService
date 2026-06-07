@@ -22,6 +22,8 @@ secrets/
 *.jks
 *.key
 *.crt
+*.jwt
+*.token
 
 logs/
 *.log

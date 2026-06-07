@@ -58,3 +58,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | --- | --- | --- | --- | --- | ---: | --- |
 | `S3.01` | Configure JWT resource server and scope authorization | `P0 Critical` | `Sprint 3`, `Security`, `Backend` | 13 June 2026 | 4h | Implemented on `feature/s3-01-jwt-resource-server-security` |
 | `S3.02` | Enforce scope-based authorization and method security | `P0 Critical` | `Sprint 3`, `Security`, `API` | 13 June 2026 | 4h | Implemented on `feature/s3-02-scope-method-security` |
+| `S3.03` | Add dev-only JWT generation workflow for reviewers | `P1 High` | `Sprint 3`, `Security`, `Documentation`, `DevOps` | 13 June 2026 | 3h | Implemented on `feature/s3-03-dev-jwt-generation` |

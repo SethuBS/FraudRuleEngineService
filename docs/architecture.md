@@ -83,6 +83,8 @@ Authorization is enforced at both URL and method level. Public paths are configu
 
 Only health endpoints and local API documentation paths are public by default. Actuator details such as info, metrics, and Prometheus are protected, and `application-prod.yml` disables OpenAPI and Swagger UI for production deployments.
 
+The reviewer JWT generator is deliberately local-only. `scripts/generate-jwt.ps1` and `scripts/generate-jwt.sh` sign RS256 tokens for the bundled local public key and support system ingestor, fraud analyst, and rule admin profiles. These scripts are excluded from the Docker build context, generated token files are ignored by Git, and production deployments must use an external IdP rather than the local development signer.
+
 ## Code-First Rule Engine
 
 Fraud rules are implemented by adding Spring beans that implement `FraudRule`. The HTTP transaction-evaluation contract does not change when a new rule is added. Each rule owns metadata such as code, name, description, severity, and default score, and evaluates a `TransactionContext` that contains the normalized transaction plus slots for historical evaluation and alert data.
