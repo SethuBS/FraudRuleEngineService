@@ -67,22 +67,22 @@ docker compose start
 
 ## Results
 
-| Check | Result |
-| --- | --- |
-| Clean checkout completed | Passed |
-| Docker image built | Passed |
-| PostgreSQL container healthy | Passed |
-| Application container healthy | Passed |
-| Readiness endpoint returned `UP` | Passed |
-| Flyway applied migrations | Passed, 4 migrations applied to schema version `v4` |
-| Local JWT generation worked | Passed |
-| High-risk transaction evaluation worked | Passed, `FLAGGED`, score `100`, risk level `CRITICAL` |
-| Fraud alert retrieval worked | Passed, 1 alert returned for `customer-1` and `CRITICAL` |
-| Stored transaction evaluation retrieval worked | Passed |
-| Swagger UI returned `200` | Passed |
-| OpenAPI JSON returned `200` | Passed |
-| Stop/start restart worked | Passed |
-| Stored evaluation still worked after restart | Passed |
+| Check                                          | Result                                                   |
+|------------------------------------------------|----------------------------------------------------------|
+| Clean checkout completed                       | Passed                                                   |
+| Docker image built                             | Passed                                                   |
+| PostgreSQL container healthy                   | Passed                                                   |
+| Application container healthy                  | Passed                                                   |
+| Readiness endpoint returned `UP`               | Passed                                                   |
+| Flyway applied migrations                      | Passed, 4 migrations applied to schema version `v4`      |
+| Local JWT generation worked                    | Passed                                                   |
+| High-risk transaction evaluation worked        | Passed, `FLAGGED`, score `100`, risk level `CRITICAL`    |
+| Fraud alert retrieval worked                   | Passed, 1 alert returned for `customer-1` and `CRITICAL` |
+| Stored transaction evaluation retrieval worked | Passed                                                   |
+| Swagger UI returned `200`                      | Passed                                                   |
+| OpenAPI JSON returned `200`                    | Passed                                                   |
+| Stop/start restart worked                      | Passed                                                   |
+| Stored evaluation still worked after restart   | Passed                                                   |
 
 ## Required Fix Found
 

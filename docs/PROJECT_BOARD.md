@@ -20,24 +20,24 @@ This project uses labels for priority, sprint, and work type. Trello columns rem
 
 ## Priority Labels
 
-| Label | Meaning |
-| --- | --- |
-| `P0 Critical` | Required for a credible submission or release gate. |
-| `P1 High` | Important for reviewer confidence and target release quality. |
-| `P2 Medium` | Valuable, but can move if the core path is at risk. |
-| `P3 Stretch` | Optional improvement after core work is stable. |
+| Label         | Meaning                                                       |
+|---------------|---------------------------------------------------------------|
+| `P0 Critical` | Required for a credible submission or release gate.           |
+| `P1 High`     | Important for reviewer confidence and target release quality. |
+| `P2 Medium`   | Valuable, but can move if the core path is at risk.           |
+| `P3 Stretch`  | Optional improvement after core work is stable.               |
 
 ## Sprint Labels
 
-| Label | Window |
-| --- | --- |
-| `Sprint 0` | 6 Jun, planning and baseline |
-| `Sprint 1` | 7-9 Jun, core domain and persistence |
-| `Sprint 2` | 10-12 Jun, rule engine and APIs |
-| `Sprint 3` | 13-15 Jun, security and production hardening |
-| `Sprint 4` | 16-17 Jun, testing, documentation, polish |
-| `Release` | 18 Jun, release and submit |
-| `Stretch` | Optional work after required scope is complete |
+| Label      | Window                                         |
+|------------|------------------------------------------------|
+| `Sprint 0` | 6 Jun, planning and baseline                   |
+| `Sprint 1` | 7-9 Jun, core domain and persistence           |
+| `Sprint 2` | 10-12 Jun, rule engine and APIs                |
+| `Sprint 3` | 13-15 Jun, security and production hardening   |
+| `Sprint 4` | 16-17 Jun, testing, documentation, polish      |
+| `Release`  | 18 Jun, release and submit                     |
+| `Stretch`  | Optional work after required scope is complete |
 
 ## Work-Type Labels
 

@@ -25,22 +25,22 @@ The same key is expected in GitHub as the `NVD_API_KEY` repository secret for th
 Report summary:
 
 | Severity | Count |
-| --- | ---: |
-| Critical | 6 |
-| High | 8 |
-| Medium | 13 |
-| Low | 2 |
+|----------|------:|
+| Critical |     6 |
+| High     |     8 |
+| Medium   |    13 |
+| Low      |     2 |
 
 Findings reviewed:
 
-| Dependency or asset | Scope observed | Notes |
-| --- | --- | --- |
-| `tomcat-embed-core` / `tomcat-embed-websocket` `10.1.54` | Application runtime via Spring Boot web starter | Real runtime finding. Track with Spring Boot/Tomcat managed dependency updates before release. |
-| `log4j-api` / `log4j-to-slf4j` `2.24.3` | Application runtime via Spring Boot logging starter | Real runtime finding. Track with Spring Boot managed dependency updates before release. |
-| `swagger-ui` `5.32.2` bundled `DOMPurify` assets | Local OpenAPI UI runtime; disabled in `prod` profile | Real local-reviewer surface. Track springdoc/swagger-ui update before release and keep Swagger disabled in production. |
-| `commons-beanutils` `1.10.1` | Build tooling through Checkstyle | Not on the application runtime classpath. Do not suppress without a narrow justification; track Checkstyle/tooling update. |
-| `plexus-utils` `3.3.0` | Build tooling through Checkstyle/Doxia | Not on the application runtime classpath. Do not suppress without a narrow justification; track Checkstyle/tooling update. |
-| `commons-lang3` `3.17.0` | Build tooling through Checkstyle/Doxia | Application runtime resolves `commons-lang3` `3.20.0`; this finding is from the Checkstyle configuration. |
+| Dependency or asset                                      | Scope observed                                       | Notes                                                                                                                      |
+|----------------------------------------------------------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `tomcat-embed-core` / `tomcat-embed-websocket` `10.1.54` | Application runtime via Spring Boot web starter      | Real runtime finding. Track with Spring Boot/Tomcat managed dependency updates before release.                             |
+| `log4j-api` / `log4j-to-slf4j` `2.24.3`                  | Application runtime via Spring Boot logging starter  | Real runtime finding. Track with Spring Boot managed dependency updates before release.                                    |
+| `swagger-ui` `5.32.2` bundled `DOMPurify` assets         | Local OpenAPI UI runtime; disabled in `prod` profile | Real local-reviewer surface. Track springdoc/swagger-ui update before release and keep Swagger disabled in production.     |
+| `commons-beanutils` `1.10.1`                             | Build tooling through Checkstyle                     | Not on the application runtime classpath. Do not suppress without a narrow justification; track Checkstyle/tooling update. |
+| `plexus-utils` `3.3.0`                                   | Build tooling through Checkstyle/Doxia               | Not on the application runtime classpath. Do not suppress without a narrow justification; track Checkstyle/tooling update. |
+| `commons-lang3` `3.17.0`                                 | Build tooling through Checkstyle/Doxia               | Application runtime resolves `commons-lang3` `3.20.0`; this finding is from the Checkstyle configuration.                  |
 
 No suppressions were added during this review. Findings are retained in the report so they remain visible until upgraded or individually justified.
 

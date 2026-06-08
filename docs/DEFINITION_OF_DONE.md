@@ -14,17 +14,17 @@ Production-grade means the Fraud Rule Engine Service can be reviewed as a mainta
 
 Every completed feature must preserve these qualities:
 
-| Quality | Required evidence |
-| --- | --- |
-| Correctness | Behavior matches the design document, API contract, and card acceptance criteria, including validation and failure paths. |
-| Determinism | Fraud decisions, rule ordering, idempotent duplicate handling, and persisted audit records are predictable and repeatable. |
-| Security | Protected endpoints enforce the intended access rules, sensitive data is not logged, raw payload storage is sanitized, and production-only exposure is minimized. |
-| Privacy | Customer, account, device, and raw payload handling follows data-minimization and retention rules. |
-| Testing | Unit, integration, API, security, migration, OpenAPI, or smoke tests cover the risk introduced by the card. |
-| Observability | Relevant logs, correlation ids, metrics, health checks, and operational failure signals remain useful and do not leak sensitive data. |
-| Documentation | README, developer guide, design document, Postman collection, or ADRs are updated when behavior, setup, APIs, security, or trade-offs change. |
-| Docker runtime | The service still builds, starts, passes health checks, and works through Docker Compose with PostgreSQL. |
-| Maintainability | Code follows clear package boundaries, with business logic outside controllers and persistence concerns outside domain rules. |
+| Quality         | Required evidence                                                                                                                                                 |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Correctness     | Behavior matches the design document, API contract, and card acceptance criteria, including validation and failure paths.                                         |
+| Determinism     | Fraud decisions, rule ordering, idempotent duplicate handling, and persisted audit records are predictable and repeatable.                                        |
+| Security        | Protected endpoints enforce the intended access rules, sensitive data is not logged, raw payload storage is sanitized, and production-only exposure is minimized. |
+| Privacy         | Customer, account, device, and raw payload handling follows data-minimization and retention rules.                                                                |
+| Testing         | Unit, integration, API, security, migration, OpenAPI, or smoke tests cover the risk introduced by the card.                                                       |
+| Observability   | Relevant logs, correlation ids, metrics, health checks, and operational failure signals remain useful and do not leak sensitive data.                             |
+| Documentation   | README, developer guide, design document, Postman collection, or ADRs are updated when behavior, setup, APIs, security, or trade-offs change.                     |
+| Docker runtime  | The service still builds, starts, passes health checks, and works through Docker Compose with PostgreSQL.                                                         |
+| Maintainability | Code follows clear package boundaries, with business logic outside controllers and persistence concerns outside domain rules.                                     |
 
 ## Build Done
 

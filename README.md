@@ -176,68 +176,68 @@ Dependency and secret hygiene review notes are maintained in [docs/SECURITY_REVI
 
 Fraud evaluation thresholds are runtime configuration, not domain constants. The defaults live in `application.yml` and can be overridden by environment variables:
 
-| Setting | Environment variable | Default |
-| --- | --- | --- |
-| OpenAPI JSON enabled | `SPRINGDOC_API_DOCS_ENABLED` | `true` |
-| Swagger UI enabled | `SPRINGDOC_SWAGGER_UI_ENABLED` | `true` |
-| OpenAPI title | `FRAUD_OPENAPI_TITLE` | `Fraud Rule Engine Service API` |
-| OpenAPI version | `FRAUD_OPENAPI_VERSION` | `0.0.1-SNAPSHOT` |
-| OpenAPI bearer security scheme name | `FRAUD_OPENAPI_BEARER_SECURITY_SCHEME_NAME` | `bearer-jwt` |
-| Transaction evaluation API path | `FRAUD_API_PATH_TRANSACTION_EVALUATIONS` | `/api/v1/transaction-evaluations` |
-| Reviewer transaction evaluation API path | `FRAUD_API_PATH_TRANSACTIONS_EVALUATE` | `/api/v1/transactions/evaluate` |
-| Fraud alerts API path | `FRAUD_API_PATH_FRAUD_ALERTS` | `/api/v1/fraud-alerts` |
-| Fraud alert detail API path | `FRAUD_API_PATH_FRAUD_ALERT_DETAIL` | `/api/v1/fraud-alerts/{alertId}` |
-| Transaction fraud evaluation lookup API path | `FRAUD_API_PATH_TRANSACTION_FRAUD_EVALUATION` | `/api/v1/transactions/{transactionId}/fraud-evaluation` |
-| Alert list default page | `FRAUD_API_PAGINATION_DEFAULT_PAGE` | `0` |
-| Alert list default size | `FRAUD_API_PAGINATION_DEFAULT_SIZE` | `20` |
-| Alert list maximum size | `FRAUD_API_PAGINATION_MAX_SIZE` | `100` |
-| Exposed actuator endpoints | `MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE` | `health,info,metrics,prometheus` |
-| Health probes enabled | `MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED` | `true` |
-| Health components visibility | `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS` | `when_authorized` |
-| Health details visibility | `MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS` | `when_authorized` |
-| Readiness health contributors | `MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE` | `readinessState,db` |
-| Prometheus export enabled | `MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED` | `true` |
-| Application info name | `INFO_APP_NAME` | `FraudRuleEngineService` |
-| Application info version | `INFO_APP_VERSION` | `0.0.1-SNAPSHOT` |
-| Error and logging correlation header | `FRAUD_API_ERRORS_CORRELATION_ID_HEADER` | `X-Correlation-ID` |
-| Correlation MDC key | `FRAUD_OBSERVABILITY_CORRELATION_ID_MDC_KEY` | `correlationId` |
-| Correlation header maximum length | `FRAUD_OBSERVABILITY_CORRELATION_ID_MAX_LENGTH` | `128` |
-| Log level pattern | `LOGGING_PATTERN_LEVEL` | `%5p [correlationId=%X{correlationId}]` |
-| Safe internal error message | `FRAUD_API_ERRORS_INTERNAL_SERVER_ERROR_MESSAGE` | `An unexpected error occurred` |
-| Generic not-found error message | `FRAUD_API_ERRORS_RESOURCE_NOT_FOUND_MESSAGE` | `Resource was not found` |
-| Security public paths | `FRAUD_SECURITY_PUBLIC_PATHS` | `/actuator/health,/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
-| Transaction evaluation paths | `FRAUD_SECURITY_TRANSACTION_EVALUATE_PATHS` | `/api/v1/transaction-evaluations,/api/v1/transactions/evaluate` |
-| Fraud alert read paths | `FRAUD_SECURITY_FRAUD_ALERTS_READ_PATHS` | `/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation` |
-| Rule read paths | `FRAUD_SECURITY_RULES_READ_PATHS` | `/api/v1/rules,/api/v1/rules/**` |
-| Rule admin paths | `FRAUD_SECURITY_RULES_ADMIN_PATHS` | `/api/v1/rules/admin,/api/v1/rules/admin/**` |
-| Actuator read paths | `FRAUD_SECURITY_ACTUATOR_READ_PATHS` | `/actuator,/actuator/info,/actuator/metrics,/actuator/metrics/**,/actuator/prometheus` |
-| Transaction evaluation scope | `FRAUD_SECURITY_TRANSACTION_EVALUATE_SCOPE` | `transactions:evaluate` |
-| Fraud alert read scope | `FRAUD_SECURITY_FRAUD_ALERTS_READ_SCOPE` | `fraud-alerts:read` |
-| Rule read scope | `FRAUD_SECURITY_RULES_READ_SCOPE` | `rules:read` |
-| Rule admin scope | `FRAUD_SECURITY_RULES_ADMIN_SCOPE` | `rules:admin` |
-| Actuator read scope | `FRAUD_SECURITY_ACTUATOR_READ_SCOPE` | `actuator:read` |
-| JWT issuer | `FRAUD_SECURITY_JWT_ISSUER_URI` | `fraud-rule-engine-local` |
-| JWT audiences | `FRAUD_SECURITY_JWT_AUDIENCES` | `fraud-rule-engine-service` |
-| JWT JWK set URI | `FRAUD_SECURITY_JWT_JWK_SET_URI` | empty |
-| JWT public key location | `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION` | `classpath:security/local-dev-public-key.pem` |
-| Merchant category maximum length | `FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH` | `80` |
-| Medium risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM` | `25` |
-| High risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH` | `50` |
-| Critical risk score threshold | `FRAUD_EVALUATION_RISK_THRESHOLD_CRITICAL` | `75` |
-| Review decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW` | `MEDIUM` |
-| Flagged decision minimum risk level | `FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED` | `HIGH` |
-| Application clock zone | `FRAUD_TIME_ZONE_ID` | `UTC` |
-| Raw payload retention duration | `FRAUD_RAW_PAYLOAD_RETENTION_DURATION` | `P7D` |
-| Raw payload cleanup enabled | `FRAUD_RAW_PAYLOAD_CLEANUP_ENABLED` | `true` |
-| Raw payload cleanup cron | `FRAUD_RAW_PAYLOAD_CLEANUP_CRON` | `0 0 * * * *` |
-| Docker PostgreSQL image | `POSTGRES_IMAGE` | `postgres:16-alpine` |
-| Docker PostgreSQL database | `POSTGRES_DB` | `fraud_rule_engine` |
-| Docker PostgreSQL user | `POSTGRES_USER` | `fraud` |
-| Docker PostgreSQL password | `POSTGRES_PASSWORD` | `fraud` |
-| Docker app host port | `APP_HOST_PORT` | `8080` |
-| Docker PostgreSQL host port | `POSTGRES_HOST_PORT` | `5432` |
-| Test PostgreSQL image | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image` | `postgres:16-alpine` |
-| Test PostgreSQL startup timeout | `TEST_POSTGRES_STARTUP_TIMEOUT` or `-Dtest.postgres.startup-timeout` | `PT2M` |
+| Setting                                      | Environment variable                                                 | Default                                                                                |
+|----------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| OpenAPI JSON enabled                         | `SPRINGDOC_API_DOCS_ENABLED`                                         | `true`                                                                                 |
+| Swagger UI enabled                           | `SPRINGDOC_SWAGGER_UI_ENABLED`                                       | `true`                                                                                 |
+| OpenAPI title                                | `FRAUD_OPENAPI_TITLE`                                                | `Fraud Rule Engine Service API`                                                        |
+| OpenAPI version                              | `FRAUD_OPENAPI_VERSION`                                              | `0.0.1-SNAPSHOT`                                                                       |
+| OpenAPI bearer security scheme name          | `FRAUD_OPENAPI_BEARER_SECURITY_SCHEME_NAME`                          | `bearer-jwt`                                                                           |
+| Transaction evaluation API path              | `FRAUD_API_PATH_TRANSACTION_EVALUATIONS`                             | `/api/v1/transaction-evaluations`                                                      |
+| Reviewer transaction evaluation API path     | `FRAUD_API_PATH_TRANSACTIONS_EVALUATE`                               | `/api/v1/transactions/evaluate`                                                        |
+| Fraud alerts API path                        | `FRAUD_API_PATH_FRAUD_ALERTS`                                        | `/api/v1/fraud-alerts`                                                                 |
+| Fraud alert detail API path                  | `FRAUD_API_PATH_FRAUD_ALERT_DETAIL`                                  | `/api/v1/fraud-alerts/{alertId}`                                                       |
+| Transaction fraud evaluation lookup API path | `FRAUD_API_PATH_TRANSACTION_FRAUD_EVALUATION`                        | `/api/v1/transactions/{transactionId}/fraud-evaluation`                                |
+| Alert list default page                      | `FRAUD_API_PAGINATION_DEFAULT_PAGE`                                  | `0`                                                                                    |
+| Alert list default size                      | `FRAUD_API_PAGINATION_DEFAULT_SIZE`                                  | `20`                                                                                   |
+| Alert list maximum size                      | `FRAUD_API_PAGINATION_MAX_SIZE`                                      | `100`                                                                                  |
+| Exposed actuator endpoints                   | `MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE`                          | `health,info,metrics,prometheus`                                                       |
+| Health probes enabled                        | `MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED`                          | `true`                                                                                 |
+| Health components visibility                 | `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS`                         | `when_authorized`                                                                      |
+| Health details visibility                    | `MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS`                            | `when_authorized`                                                                      |
+| Readiness health contributors                | `MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE`                 | `readinessState,db`                                                                    |
+| Prometheus export enabled                    | `MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED`                       | `true`                                                                                 |
+| Application info name                        | `INFO_APP_NAME`                                                      | `FraudRuleEngineService`                                                               |
+| Application info version                     | `INFO_APP_VERSION`                                                   | `0.0.1-SNAPSHOT`                                                                       |
+| Error and logging correlation header         | `FRAUD_API_ERRORS_CORRELATION_ID_HEADER`                             | `X-Correlation-ID`                                                                     |
+| Correlation MDC key                          | `FRAUD_OBSERVABILITY_CORRELATION_ID_MDC_KEY`                         | `correlationId`                                                                        |
+| Correlation header maximum length            | `FRAUD_OBSERVABILITY_CORRELATION_ID_MAX_LENGTH`                      | `128`                                                                                  |
+| Log level pattern                            | `LOGGING_PATTERN_LEVEL`                                              | `%5p [correlationId=%X{correlationId}]`                                                |
+| Safe internal error message                  | `FRAUD_API_ERRORS_INTERNAL_SERVER_ERROR_MESSAGE`                     | `An unexpected error occurred`                                                         |
+| Generic not-found error message              | `FRAUD_API_ERRORS_RESOURCE_NOT_FOUND_MESSAGE`                        | `Resource was not found`                                                               |
+| Security public paths                        | `FRAUD_SECURITY_PUBLIC_PATHS`                                        | `/actuator/health,/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
+| Transaction evaluation paths                 | `FRAUD_SECURITY_TRANSACTION_EVALUATE_PATHS`                          | `/api/v1/transaction-evaluations,/api/v1/transactions/evaluate`                        |
+| Fraud alert read paths                       | `FRAUD_SECURITY_FRAUD_ALERTS_READ_PATHS`                             | `/api/v1/fraud-alerts,/api/v1/fraud-alerts/**,/api/v1/transactions/*/fraud-evaluation` |
+| Rule read paths                              | `FRAUD_SECURITY_RULES_READ_PATHS`                                    | `/api/v1/rules,/api/v1/rules/**`                                                       |
+| Rule admin paths                             | `FRAUD_SECURITY_RULES_ADMIN_PATHS`                                   | `/api/v1/rules/admin,/api/v1/rules/admin/**`                                           |
+| Actuator read paths                          | `FRAUD_SECURITY_ACTUATOR_READ_PATHS`                                 | `/actuator,/actuator/info,/actuator/metrics,/actuator/metrics/**,/actuator/prometheus` |
+| Transaction evaluation scope                 | `FRAUD_SECURITY_TRANSACTION_EVALUATE_SCOPE`                          | `transactions:evaluate`                                                                |
+| Fraud alert read scope                       | `FRAUD_SECURITY_FRAUD_ALERTS_READ_SCOPE`                             | `fraud-alerts:read`                                                                    |
+| Rule read scope                              | `FRAUD_SECURITY_RULES_READ_SCOPE`                                    | `rules:read`                                                                           |
+| Rule admin scope                             | `FRAUD_SECURITY_RULES_ADMIN_SCOPE`                                   | `rules:admin`                                                                          |
+| Actuator read scope                          | `FRAUD_SECURITY_ACTUATOR_READ_SCOPE`                                 | `actuator:read`                                                                        |
+| JWT issuer                                   | `FRAUD_SECURITY_JWT_ISSUER_URI`                                      | `fraud-rule-engine-local`                                                              |
+| JWT audiences                                | `FRAUD_SECURITY_JWT_AUDIENCES`                                       | `fraud-rule-engine-service`                                                            |
+| JWT JWK set URI                              | `FRAUD_SECURITY_JWT_JWK_SET_URI`                                     | empty                                                                                  |
+| JWT public key location                      | `FRAUD_SECURITY_JWT_PUBLIC_KEY_LOCATION`                             | `classpath:security/local-dev-public-key.pem`                                          |
+| Merchant category maximum length             | `FRAUD_API_VALIDATION_MERCHANT_CATEGORY_MAX_LENGTH`                  | `80`                                                                                   |
+| Medium risk score threshold                  | `FRAUD_EVALUATION_RISK_THRESHOLD_MEDIUM`                             | `25`                                                                                   |
+| High risk score threshold                    | `FRAUD_EVALUATION_RISK_THRESHOLD_HIGH`                               | `50`                                                                                   |
+| Critical risk score threshold                | `FRAUD_EVALUATION_RISK_THRESHOLD_CRITICAL`                           | `75`                                                                                   |
+| Review decision minimum risk level           | `FRAUD_EVALUATION_DECISION_THRESHOLD_REVIEW`                         | `MEDIUM`                                                                               |
+| Flagged decision minimum risk level          | `FRAUD_EVALUATION_DECISION_THRESHOLD_FLAGGED`                        | `HIGH`                                                                                 |
+| Application clock zone                       | `FRAUD_TIME_ZONE_ID`                                                 | `UTC`                                                                                  |
+| Raw payload retention duration               | `FRAUD_RAW_PAYLOAD_RETENTION_DURATION`                               | `P7D`                                                                                  |
+| Raw payload cleanup enabled                  | `FRAUD_RAW_PAYLOAD_CLEANUP_ENABLED`                                  | `true`                                                                                 |
+| Raw payload cleanup cron                     | `FRAUD_RAW_PAYLOAD_CLEANUP_CRON`                                     | `0 0 * * * *`                                                                          |
+| Docker PostgreSQL image                      | `POSTGRES_IMAGE`                                                     | `postgres:16-alpine`                                                                   |
+| Docker PostgreSQL database                   | `POSTGRES_DB`                                                        | `fraud_rule_engine`                                                                    |
+| Docker PostgreSQL user                       | `POSTGRES_USER`                                                      | `fraud`                                                                                |
+| Docker PostgreSQL password                   | `POSTGRES_PASSWORD`                                                  | `fraud`                                                                                |
+| Docker app host port                         | `APP_HOST_PORT`                                                      | `8080`                                                                                 |
+| Docker PostgreSQL host port                  | `POSTGRES_HOST_PORT`                                                 | `5432`                                                                                 |
+| Test PostgreSQL image                        | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image`                     | `postgres:16-alpine`                                                                   |
+| Test PostgreSQL startup timeout              | `TEST_POSTGRES_STARTUP_TIMEOUT` or `-Dtest.postgres.startup-timeout` | `PT2M`                                                                                 |
 
 ## Docker
 
@@ -377,11 +377,11 @@ TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
 
 Supported profiles:
 
-| Profile | Scopes |
-| --- | --- |
-| `system-ingestor` | `transactions:evaluate` |
-| `fraud-analyst` | `fraud-alerts:read actuator:read` |
-| `rule-admin` | `rules:read rules:admin actuator:read` |
+| Profile           | Scopes                                 |
+|-------------------|----------------------------------------|
+| `system-ingestor` | `transactions:evaluate`                |
+| `fraud-analyst`   | `fraud-alerts:read actuator:read`      |
+| `rule-admin`      | `rules:read rules:admin actuator:read` |
 
 The default issuer is `fraud-rule-engine-local`, the default audience is `fraud-rule-engine-service`, and token lifetime can be overridden with `FRAUD_LOCAL_JWT_TTL_SECONDS` or the script argument. Generated token files should be written under `.local/` or with a `.jwt` / `.token` extension so they stay ignored by Git. The dev token scripts are excluded from the Docker build context; the production image only receives the bootable application JAR.
 
