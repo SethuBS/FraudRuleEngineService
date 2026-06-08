@@ -8,6 +8,17 @@ FraudRuleEngineService is a Java 17 / Spring Boot service for evaluating categor
 
 The reviewer path is implemented: Docker Compose starts the service and PostgreSQL, Flyway creates the schema, local-only JWT scripts generate reviewer tokens, the main APIs are secured by scope, and the Gradle test suite includes unit, integration, API, security, idempotency, Flyway, and Docker-facing coverage.
 
+## Reviewer Navigation
+
+Start with these links if you are reviewing the repository from GitHub:
+
+- Run it locally: [Quick Start](#quick-start)
+- Understand the architecture: [docs/architecture.md](docs/architecture.md) and [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
+- Inspect the API manually: [API Examples](#api-examples) and [Curl Collection Test Suite](#curl-collection-test-suite)
+- Verify release readiness: [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md)
+- Review security notes: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
+- Browse the GitHub Wiki: [FraudRuleEngineService Wiki](https://github.com/SethuBS/FraudRuleEngineService/wiki)
+
 ## Project Overview
 
 The service must receive a categorized transaction event, evaluate it against deterministic fraud rules, persist the decision and rule evaluation evidence, and expose retrieval APIs for alerts, event evaluations, and the active rule catalog.
@@ -99,6 +110,8 @@ curl http://localhost:8080/actuator/health/readiness
 
 Generate a transaction-ingestor token and evaluate the high-risk sample:
 
+PowerShell:
+
 ```powershell
 $token = .\scripts\generate-jwt.ps1 -Profile system-ingestor
 curl.exe -X POST "http://localhost:8080/api/v1/transactions/evaluate" `
@@ -106,6 +119,8 @@ curl.exe -X POST "http://localhost:8080/api/v1/transactions/evaluate" `
   -H "Authorization: Bearer $token" `
   -d "@examples/high-risk-transaction.json"
 ```
+
+Bash or Git Bash:
 
 ```bash
 TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
@@ -1023,3 +1038,6 @@ echo "Curl collection suite passed."
 - Security review: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
 - Architecture and interview notes: [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
 - Docker smoke test evidence: [docs/DOCKER_SMOKE_TEST.md](docs/DOCKER_SMOKE_TEST.md)
+- Release verification: [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md)
+- Final documentation review: [docs/FINAL_DOCUMENTATION_REVIEW.md](docs/FINAL_DOCUMENTATION_REVIEW.md)
+- GitHub Wiki: [FraudRuleEngineService Wiki](https://github.com/SethuBS/FraudRuleEngineService/wiki)

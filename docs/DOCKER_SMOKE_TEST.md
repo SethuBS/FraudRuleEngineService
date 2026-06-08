@@ -86,6 +86,6 @@ docker compose start
 
 ## Required Fix Found
 
-The smoke test found one documentation mismatch. The high-risk example evaluates to `CRITICAL`, while the README alert retrieval sample previously filtered by `riskLevel=HIGH`. The README sample was updated to `riskLevel=CRITICAL` so the documented reviewer flow returns the created alert.
+The smoke test found one documentation mismatch. The high-risk example evaluates to `CRITICAL`, while the README alert retrieval sample previously filtered by a risk level that did not match the created alert. The README sample was updated to `riskLevel=CRITICAL` so the documented reviewer flow returns the created alert.
 
 No Java code changes were required.

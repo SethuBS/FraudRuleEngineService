@@ -4,13 +4,13 @@ This document records the local R.01 verification run for the release submission
 
 ## R.01 - Final Build, Tests, and Dependency Check
 
-| Field | Value |
-|-------|-------|
-| Due date | 18 June 2026 |
-| Priority | P0 Critical |
-| Labels | Release, Testing, DevOps, Security |
-| Branch | `release/r-01-final-verification` |
-| Verification date | 8 June 2026 |
+| Field             | Value                              |
+|-------------------|------------------------------------|
+| Due date          | 18 June 2026                       |
+| Priority          | P0 Critical                        |
+| Labels            | Release, Testing, DevOps, Security |
+| Branch            | `release/r-01-final-verification`  |
+| Verification date | 8 June 2026                        |
 
 ## Release Hardening Changes
 
@@ -27,21 +27,21 @@ This document records the local R.01 verification run for the release submission
 
 ## Commands And Results
 
-| Command | Result |
-|---------|--------|
-| `.\gradlew.bat clean test --no-daemon` | Passed |
-| `.\gradlew.bat bootJar --no-daemon` | Passed |
-| `.\gradlew.bat check --no-daemon` | Passed |
-| `.\gradlew.bat dependencyCheckAnalyze --no-daemon --rerun-tasks` | Passed with 0 vulnerabilities |
-| `docker compose up --build -d` | Passed; PostgreSQL and application containers healthy |
-| README curl collection suite | Passed all 13 checks |
+| Command                                | Result                                                |
+|----------------------------------------|-------------------------------------------------------|
+| `.\gradlew.bat clean test --no-daemon` | Passed                                                |
+| `.\gradlew.bat bootJar --no-daemon`    | Passed                                                |
+| `.\gradlew.bat check --no-daemon`      | Passed                                                |
+| `.\gradlew.bat dependencyCheckAnalyze` | Passed with 0 vulnerabilities                         |
+| `docker compose up --build -d`         | Passed; PostgreSQL and application containers healthy |
+| README curl collection suite           | Passed all documented checks                          |
 
-Dependency Check was run with the ignored local NVD data cache to avoid release verification depending on transient NVD API update availability:
+Dependency Check was run with the local-only NVD API key from an ignored `.local/` file. The first local run exhausted the default 512 MiB Gradle daemon heap while rebuilding the OWASP H2 vulnerability cache, so the successful release run used a larger one-off Gradle heap and the ignored `.local/dependency-check-data` cache:
 
 ```powershell
+$env:NVD_API_KEY = (Get-Content .local\nvd-api-key.txt -Raw).Trim()
 $env:DEPENDENCY_CHECK_DATA_DIRECTORY = (Resolve-Path .local\dependency-check-data).Path
-$env:DEPENDENCY_CHECK_AUTO_UPDATE = 'false'
-.\gradlew.bat dependencyCheckAnalyze --no-daemon --rerun-tasks
+.\gradlew.bat --no-daemon "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=768m" dependencyCheckAnalyze
 ```
 
 The NVD API key remains local-only in `.local\nvd-api-key.txt` or `NVD_API_KEY`; it is not committed.
@@ -54,13 +54,13 @@ Gradle test report:
 
 JUnit XML summary:
 
-| Metric | Count |
-|--------|------:|
-| Test classes | 38 |
-| Tests | 152 |
-| Failures | 0 |
-| Errors | 0 |
-| Skipped | 0 |
+| Metric       | Count |
+|--------------|------:|
+| Test classes |    38 |
+| Tests        |   152 |
+| Failures     |     0 |
+| Errors       |     0 |
+| Skipped      |     0 |
 
 ## Dependency Check Report
 
@@ -73,10 +73,10 @@ Report summary:
 
 | Severity | Count |
 |----------|------:|
-| Critical | 0 |
-| High | 0 |
-| Medium | 0 |
-| Low | 0 |
+| Critical |     0 |
+| High     |     0 |
+| Medium   |     0 |
+| Low      |     0 |
 
 ## Docker Smoke Result
 
@@ -99,6 +99,7 @@ Observed runtime checks:
 The README curl collection passed:
 
 - Readiness endpoint returned `200`.
+- Protected actuator detail endpoints returned `200` with the expected scoped token.
 - Swagger UI returned `200`.
 - OpenAPI JSON returned `200`.
 - High-risk transaction evaluation returned `FLAGGED`, score `100`, risk level `CRITICAL`.
@@ -106,6 +107,11 @@ The README curl collection passed:
 - Fraud alert list returned results for `customer-1` and `riskLevel=CRITICAL`.
 - Fraud alert detail retrieval returned `200`.
 - Stored transaction fraud evaluation retrieval returned `200`.
+- Missing fraud alert returned `404`.
+- Missing transaction fraud evaluation returned `404`.
+- Fraud alert pagination and filter edge cases returned the expected responses.
+- Alternate transaction evaluation path returned `200`.
+- High-value boundary, high-value, foreign-country, risky-category, suspicious-merchant, unusual-amount, and velocity rule scenarios returned expected decisions and matched rules.
 - Low-risk transaction evaluation returned `200`.
 - Missing token returned `401`.
 - Invalid token returned `401`.

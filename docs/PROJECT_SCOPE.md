@@ -8,17 +8,17 @@ Estimate: 1.5 hours
 
 ## Confirmed Scope
 
-| Decision | Scope |
-| --- | --- |
-| Project name | `FraudRuleEngineService` |
-| Architecture style | Modular monolith |
-| Input | Categorized transaction event |
-| Output | Fraud decision, risk score, rule evaluation results, and fraud alert where applicable |
-| Storage | PostgreSQL |
-| API style | REST |
-| Security model | JWT OAuth2 Resource Server |
-| Target submission date | 18 June 2026 |
-| Official due date | 24 June 2026 |
+| Decision               | Scope                                                                                 |
+|------------------------|---------------------------------------------------------------------------------------|
+| Project name           | `FraudRuleEngineService`                                                              |
+| Architecture style     | Modular monolith                                                                      |
+| Input                  | Categorized transaction event                                                         |
+| Output                 | Fraud decision, risk score, rule evaluation results, and fraud alert where applicable |
+| Storage                | PostgreSQL                                                                            |
+| API style              | REST                                                                                  |
+| Security model         | JWT OAuth2 Resource Server                                                            |
+| Target submission date | 18 June 2026                                                                          |
+| Official due date      | 24 June 2026                                                                          |
 
 ## Included Capabilities
 
