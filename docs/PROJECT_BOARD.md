@@ -56,4 +56,4 @@ This project uses labels for priority, sprint, and work type. Trello columns rem
 
 ## Current Trello Action
 
-No Trello connector is available in this Codex session, so this document is the source checklist for manual board setup. The planned Sprint 0 cards are captured in [BACKLOG.md](BACKLOG.md).
+No Trello integration is required for the repository submission, so this document is the source checklist for manual board setup. The planned Sprint 0 cards are captured in [BACKLOG.md](BACKLOG.md).
