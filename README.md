@@ -1,4 +1,4 @@
-# FraudRuleEngineService
+# Fraud Rule Engine Service
 
 [![CI](https://github.com/SethuBS/FraudRuleEngineService/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/SethuBS/FraudRuleEngineService/actions/workflows/ci.yml)
 
