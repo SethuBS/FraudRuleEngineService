@@ -78,3 +78,9 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 | `S4.05` | Finish README with reviewer-first instructions            | `P0 Critical` | `Sprint 4`, `Documentation`                              | 17 June 2026 |       5h | Implemented on `feature/s4-05-reviewer-readme`                       |
 | `S4.06` | Finish architecture and interview notes                   | `P1 High`     | `Sprint 4`, `Documentation`, `Architecture`, `Interview` | 17 June 2026 |       4h | Implemented on `feature/s4-06-architecture-interview-notes`          |
 | `S4.07` | End-to-end Docker smoke test from clean checkout          | `P0 Critical` | `Sprint 4`, `DevOps`, `Testing`, `Reliability`           | 17 June 2026 |       4h | Implemented on `feature/s4-07-docker-smoke-test`                     |
+
+## Release Cards
+
+| Card   | Title                                    | Priority      | Labels                                | Due          | Estimate | Local status                                       |
+|--------|------------------------------------------|---------------|---------------------------------------|--------------|---------:|----------------------------------------------------|
+| `R.01` | Final build, tests, and dependency check | `P0 Critical` | `Release`, `Testing`, `DevOps`, `Security` | 18 June 2026 |       3h | Implemented on `release/r-01-final-verification` |
