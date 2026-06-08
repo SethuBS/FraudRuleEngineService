@@ -85,3 +85,4 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 |--------|-------------------------------------------|---------------|--------------------------------------------|--------------|---------:|---------------------------------------------------------|
 | `R.01` | Final build, tests, and dependency check  | `P0 Critical` | `Release`, `Testing`, `DevOps`, `Security` | 18 June 2026 |       3h | Implemented on `release/r-01-final-verification`        |
 | `R.02` | Final documentation and repository review | `P0 Critical` | `Release`, `Documentation`                 | 18 June 2026 |       2h | Implemented on `feature/r02-final-documentation-review` |
+| `R.03` | Final security review                     | `P0 Critical` | `Release`, `Security`                      | 18 June 2026 |       2h | Implemented on `feature/r03-final-security-review`      |

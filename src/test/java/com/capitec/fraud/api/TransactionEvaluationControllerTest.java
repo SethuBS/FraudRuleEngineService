@@ -227,8 +227,8 @@ class TransactionEvaluationControllerTest
                                   "merchantId": "merchant-1",
                                   "merchantName": "Corner Shop",
                                   "deviceId": "device-1",
-                                  "cardNumber": "4111111111111111",
-                                  "authorization": "Bearer secret-token",
+                                  "cardNumber": "TEST-CARD-NOT-REAL",
+                                  "authorization": "TEST-AUTHORIZATION-NOT-REAL",
                                   "email": "customer@example.com"
                                 }
                                 """))
@@ -270,8 +270,8 @@ class TransactionEvaluationControllerTest
                 .contains("\"authorization\":\"MASKED\"")
                 .contains("\"email\":\"MASKED\"")
                 .contains("\"customerId\":\" customer-1 \"")
-                .doesNotContain("4111111111111111")
-                .doesNotContain("secret-token")
+                .doesNotContain("TEST-CARD-NOT-REAL")
+                .doesNotContain("TEST-AUTHORIZATION-NOT-REAL")
                 .doesNotContain("customer@example.com");
     }
 
@@ -374,7 +374,7 @@ class TransactionEvaluationControllerTest
             throws Exception
     {
         when(transactionEvaluationService.evaluate(any(TransactionEvaluationCommand.class)))
-                .thenThrow(new IllegalStateException("SQL grammar error with secret-token"));
+                .thenThrow(new IllegalStateException("SQL grammar error with INTERNAL_DIAGNOSTIC_MARKER"));
 
         mockMvc.perform(post(transactionsEvaluatePath)
                         .with(csrf())
@@ -387,7 +387,7 @@ class TransactionEvaluationControllerTest
                 .andExpect(jsonPath("$.fieldErrors").isArray())
                 .andExpect(jsonPath("$.stackTrace").doesNotExist())
                 .andExpect(content().string(not(containsString("SQL"))))
-                .andExpect(content().string(not(containsString("secret-token"))));
+                .andExpect(content().string(not(containsString("INTERNAL_DIAGNOSTIC_MARKER"))));
     }
 
     private static String validEvaluationRequest()

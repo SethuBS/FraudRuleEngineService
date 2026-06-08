@@ -37,10 +37,10 @@ class RawPayloadSanitizerTest
                   "eventId": "event-1",
                   "customerId": "customer-1",
                   "accountId": "account-1",
-                  "accountNumber": "1234567890",
+                  "accountNumber": "TEST-ACCOUNT-NOT-REAL",
                   "payment": {
-                    "cardNumber": "4111111111111111",
-                    "authorization": "Bearer secret-token"
+                    "cardNumber": "TEST-CARD-NOT-REAL",
+                    "authorization": "TEST-AUTHORIZATION-NOT-REAL"
                   },
                   "contacts": [
                     {
@@ -60,9 +60,9 @@ class RawPayloadSanitizerTest
                 .contains("\"authorization\":\"MASKED\"")
                 .contains("\"email\":\"MASKED\"")
                 .contains("\"token\":\"MASKED\"")
-                .doesNotContain("1234567890")
-                .doesNotContain("4111111111111111")
-                .doesNotContain("secret-token")
+                .doesNotContain("TEST-ACCOUNT-NOT-REAL")
+                .doesNotContain("TEST-CARD-NOT-REAL")
+                .doesNotContain("TEST-AUTHORIZATION-NOT-REAL")
                 .doesNotContain("customer@example.com")
                 .doesNotContain("contact-token");
     }

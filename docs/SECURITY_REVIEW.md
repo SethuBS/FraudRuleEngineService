@@ -1,6 +1,6 @@
 # Security Review
 
-This review records the Sprint 3 dependency and secret hygiene checks for `S3.10`.
+This review records the Sprint 3 dependency and secret hygiene checks for `S3.10`, plus the release security updates completed before submission. The final release security pass is recorded in [FINAL_SECURITY_REVIEW.md](FINAL_SECURITY_REVIEW.md).
 
 ## Dependency Vulnerability Review
 
@@ -87,6 +87,20 @@ Findings:
 - `scripts/generate-jwt.ps1` and `scripts/generate-jwt.sh` contain local-only reviewer token signing material. They are for development review only and must not be used for production authentication.
 - Generated reviewer tokens should be written under `.local/` or to `.jwt` / `.token` files so they stay ignored.
 - NVD API keys must be supplied through `NVD_API_KEY`, GitHub repository secrets, or ignored local files only.
+
+## Final Security Review Update - 8 June 2026
+
+R.03 repeated the final release security pass from a reviewer perspective:
+
+- Password and token searches found no committed real production secrets.
+- Private-key searches found no production private key files. The local reviewer JWT signing material remains explicitly development-only and excluded from the Docker image.
+- Account/card/customer-data searches found no real financial or customer data. Sanitizer tests now use synthetic marker values rather than card- or account-shaped numbers.
+- `application-prod.yml` disables OpenAPI JSON and Swagger UI.
+- Actuator exposure remains limited to health, info, metrics, and Prometheus; detail endpoints require the configured `actuator:read` scope.
+- Live authorization checks confirmed `401` for missing/invalid tokens, `403` for wrong scope, and success for correct scope.
+- Docker image checks found only `/app/app.jar` under `/app`; the jar contains the local public key resource but no token generation scripts.
+
+The detailed R.03 evidence is recorded in [FINAL_SECURITY_REVIEW.md](FINAL_SECURITY_REVIEW.md).
 
 ## Docker Image Hygiene
 

@@ -1036,6 +1036,7 @@ echo "Curl collection suite passed."
 - Project board workflow and labels: [docs/PROJECT_BOARD.md](docs/PROJECT_BOARD.md)
 - Sprint backlog snapshot: [docs/BACKLOG.md](docs/BACKLOG.md)
 - Security review: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
+- Final security review: [docs/FINAL_SECURITY_REVIEW.md](docs/FINAL_SECURITY_REVIEW.md)
 - Architecture and interview notes: [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
 - Docker smoke test evidence: [docs/DOCKER_SMOKE_TEST.md](docs/DOCKER_SMOKE_TEST.md)
 - Release verification: [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md)
