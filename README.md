@@ -375,6 +375,8 @@ $token = .\scripts\generate-jwt.ps1 -Profile system-ingestor
 TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
 ```
 
+The default profile is `system-ingestor`, which is intended for the first reviewer action: `POST /api/v1/transactions/evaluate`. For clarity, the README examples still pass `--profile` / `-Profile` explicitly.
+
 For Git Bash, use Bash assignment syntax and the `.sh` script. For example:
 
 ```bash
@@ -394,6 +396,8 @@ Supported profiles:
 | `system-ingestor` | `transactions:evaluate`                |
 | `fraud-analyst`   | `fraud-alerts:read actuator:read`      |
 | `rule-admin`      | `rules:read rules:admin actuator:read` |
+
+If `POST /api/v1/transactions/evaluate` returns `403 ACCESS_DENIED` with `Required scope is missing`, the token is valid but it is not a `system-ingestor` token. Generate a new `system-ingestor` token and use it for the transaction evaluation request.
 
 The default issuer is `fraud-rule-engine-local`, the default audience is `fraud-rule-engine-service`, and token lifetime can be overridden with `FRAUD_LOCAL_JWT_TTL_SECONDS` or the script argument. Generated token files should be written under `.local/` or with a `.jwt` / `.token` extension so they stay ignored by Git. The dev token scripts are excluded from the Docker build context; the production image only receives the bootable application JAR.
 

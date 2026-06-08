@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-profile="fraud-analyst"
+profile="system-ingestor"
 subject="local-reviewer"
 issuer="${FRAUD_SECURITY_JWT_ISSUER_URI:-fraud-rule-engine-local}"
 audience="${FRAUD_SECURITY_JWT_AUDIENCES:-fraud-rule-engine-service}"
@@ -14,6 +14,7 @@ usage() {
 Usage: scripts/generate-jwt.sh [--profile system-ingestor|fraud-analyst|rule-admin] [options]
 
 Options:
+  --profile VALUE            JWT profile. Default: system-ingestor
   --subject VALUE             JWT subject. Default: local-reviewer
   --issuer VALUE              JWT issuer. Default: FRAUD_SECURITY_JWT_ISSUER_URI or fraud-rule-engine-local
   --audience VALUE            Comma-separated audiences. Default: FRAUD_SECURITY_JWT_AUDIENCES or fraud-rule-engine-service

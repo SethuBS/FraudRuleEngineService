@@ -1,7 +1,7 @@
 param(
     [Alias("Profile")]
     [ValidateSet("system-ingestor", "fraud-analyst", "rule-admin")]
-    [string] $TokenProfile = "fraud-analyst",
+    [string] $TokenProfile = "system-ingestor",
 
     [string] $Subject = "local-reviewer",
     [string] $Issuer,
