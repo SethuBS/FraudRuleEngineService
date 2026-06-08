@@ -473,6 +473,166 @@ curl "http://localhost:8080/api/v1/transactions/tx-1/fraud-evaluation" \
 
 Missing alerts or transaction evaluations return `404 RESOURCE_NOT_FOUND`. Alert list pagination defaults and limits are configurable through `fraud.api.pagination.*`.
 
+## Curl Collection Test Suite
+
+The Postman collection flow can also be run directly with `curl` from Bash or Git Bash. Start the service first with `docker compose up --build`, then run this from the repository root. Do not paste a leading shell prompt character.
+
+```bash
+set -euo pipefail
+
+BASE_URL="${BASE_URL:-http://localhost:8080}"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+request()
+{
+  local name="$1"
+  local expected_status="$2"
+  shift 2
+
+  RESPONSE_FILE="$TMP_DIR/${name//[^A-Za-z0-9]/_}.response"
+  local actual_status
+  actual_status="$(curl -sS -o "$RESPONSE_FILE" -w "%{http_code}" "$@")"
+
+  if [ "$actual_status" != "$expected_status" ]; then
+    echo "FAIL ${name}: expected ${expected_status}, got ${actual_status}"
+    cat "$RESPONSE_FILE"
+    exit 1
+  fi
+
+  echo "PASS ${name} (${actual_status})"
+}
+
+assert_contains()
+{
+  local name="$1"
+  local expected_text="$2"
+
+  if ! grep -q "$expected_text" "$RESPONSE_FILE"; then
+    echo "FAIL ${name}: response did not contain ${expected_text}"
+    cat "$RESPONSE_FILE"
+    exit 1
+  fi
+}
+
+systemIngestorToken="$(./scripts/generate-jwt.sh --profile system-ingestor)"
+fraudAnalystToken="$(./scripts/generate-jwt.sh --profile fraud-analyst)"
+
+request "readiness" 200 "$BASE_URL/actuator/health/readiness"
+assert_contains "readiness" '"status":"UP"'
+
+request "swagger_ui" 200 "$BASE_URL/swagger-ui/index.html"
+
+request "openapi_json" 200 "$BASE_URL/v3/api-docs"
+assert_contains "openapi_json" '"title":"Fraud Rule Engine Service API"'
+
+request "evaluate_high_risk_transaction" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @examples/high-risk-transaction.json
+assert_contains "evaluate_high_risk_transaction" '"transactionId":"tx-high-risk-1"'
+assert_contains "evaluate_high_risk_transaction" '"decision":"FLAGGED"'
+assert_contains "evaluate_high_risk_transaction" '"riskScore":100'
+assert_contains "evaluate_high_risk_transaction" '"riskLevel":"CRITICAL"'
+
+request "submit_duplicate_event" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @examples/duplicate-event.json
+assert_contains "submit_duplicate_event" '"transactionId":"tx-high-risk-1"'
+assert_contains "submit_duplicate_event" '"decision":"FLAGGED"'
+
+request "list_fraud_alerts" 200 \
+  "$BASE_URL/api/v1/fraud-alerts?customerId=customer-1&riskLevel=CRITICAL&page=0&size=20" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "list_fraud_alerts" '"totalElements":'
+
+alertId="$(grep -o '"alertId":"[^"]*"' "$RESPONSE_FILE" | head -n 1 | cut -d '"' -f 4)"
+if [ -z "$alertId" ]; then
+  echo "FAIL list_fraud_alerts: no alertId returned"
+  cat "$RESPONSE_FILE"
+  exit 1
+fi
+
+request "get_fraud_alert_by_id" 200 \
+  "$BASE_URL/api/v1/fraud-alerts/$alertId" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "get_fraud_alert_by_id" "\"alertId\":\"$alertId\""
+assert_contains "get_fraud_alert_by_id" '"transactionId":"tx-high-risk-1"'
+assert_contains "get_fraud_alert_by_id" '"riskLevel":"CRITICAL"'
+
+request "get_transaction_fraud_evaluation" 200 \
+  "$BASE_URL/api/v1/transactions/tx-high-risk-1/fraud-evaluation" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "get_transaction_fraud_evaluation" '"transactionId":"tx-high-risk-1"'
+assert_contains "get_transaction_fraud_evaluation" '"decision":"FLAGGED"'
+assert_contains "get_transaction_fraud_evaluation" '"riskLevel":"CRITICAL"'
+
+request "evaluate_low_risk_transaction" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @examples/low-risk-transaction.json
+assert_contains "evaluate_low_risk_transaction" '"transactionId":"tx-low-risk-1"'
+assert_contains "evaluate_low_risk_transaction" '"decision":'
+assert_contains "evaluate_low_risk_transaction" '"riskLevel":'
+
+cat > "$TMP_DIR/valid-request.json" <<'JSON'
+{
+  "eventId": "event-curl-security-1",
+  "transactionId": "tx-curl-security-1",
+  "customerId": "customer-1",
+  "accountId": "account-1",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA"
+}
+JSON
+
+request "missing_token_returns_401" 401 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  --data-binary @"$TMP_DIR/valid-request.json"
+
+request "invalid_token_returns_401" 401 \
+  "$BASE_URL/api/v1/fraud-alerts?page=0&size=20" \
+  -H "Authorization: Bearer not-a-real-jwt"
+
+request "wrong_scope_returns_403" 403 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $fraudAnalystToken" \
+  --data-binary @"$TMP_DIR/valid-request.json"
+
+cat > "$TMP_DIR/invalid-request.json" <<'JSON'
+{
+  "eventId": "",
+  "transactionId": "",
+  "customerId": "",
+  "accountId": "",
+  "amount": -1,
+  "currency": "",
+  "transactionTimestamp": null,
+  "merchantCategory": ""
+}
+JSON
+
+request "invalid_request_returns_400" 400 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/invalid-request.json"
+assert_contains "invalid_request_returns_400" '"code":'
+assert_contains "invalid_request_returns_400" '"correlationId":'
+assert_contains "invalid_request_returns_400" '"fieldErrors":'
+
+echo "Curl collection suite passed."
+```
+
 ## Design Trade-Offs
 
 - A modular monolith keeps the write path simple and strongly consistent while still demonstrating clean boundaries.
