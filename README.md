@@ -180,6 +180,7 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 |----------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------|
 | OpenAPI JSON enabled                         | `SPRINGDOC_API_DOCS_ENABLED`                                         | `true`                                                                                 |
 | Swagger UI enabled                           | `SPRINGDOC_SWAGGER_UI_ENABLED`                                       | `true`                                                                                 |
+| Swagger UI webjar version                    | `SPRINGDOC_SWAGGER_UI_VERSION`                                       | `5.32.5`                                                                               |
 | OpenAPI title                                | `FRAUD_OPENAPI_TITLE`                                                | `Fraud Rule Engine Service API`                                                        |
 | OpenAPI version                              | `FRAUD_OPENAPI_VERSION`                                              | `0.0.1-SNAPSHOT`                                                                       |
 | OpenAPI bearer security scheme name          | `FRAUD_OPENAPI_BEARER_SECURITY_SCHEME_NAME`                          | `bearer-jwt`                                                                           |
@@ -326,7 +327,7 @@ Security/dependency review can be run separately:
 .\gradlew.bat dependencyCheckAnalyze
 ```
 
-Use `NVD_API_KEY` from an environment variable or an ignored `.local/` file for faster NVD updates.
+Use `NVD_API_KEY` from an environment variable or an ignored `.local/` file for faster NVD updates. Dependency-Check also supports `DEPENDENCY_CHECK_AUTO_UPDATE`, `DEPENDENCY_CHECK_DATA_DIRECTORY`, and `DEPENDENCY_CHECK_FAIL_CVSS` for offline/repeatable release verification. Current release patch versions for Tomcat, Log4j, Swagger UI, and Checkstyle tooling are configurable from Gradle properties or matching environment variables in `build.gradle`.
 
 ## Security Model
 

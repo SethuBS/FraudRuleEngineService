@@ -44,6 +44,31 @@ Findings reviewed:
 
 No suppressions were added during this review. Findings are retained in the report so they remain visible until upgraded or individually justified.
 
+## Release Verification Update - 8 June 2026
+
+R.01 resolved the previously reviewed release-blocking dependency findings without adding Dependency-Check suppressions.
+
+Runtime dependency updates:
+
+- Tomcat is managed to `10.1.55` through configurable Gradle dependency management.
+- Log4j is managed to `2.25.4` through configurable Gradle dependency management.
+- Swagger UI is overridden to `5.32.5`, with `SPRINGDOC_SWAGGER_UI_VERSION` set to the same version so the local Swagger resource mapping works in Docker.
+
+Build-tooling updates:
+
+- Checkstyle remains on Gradle-compatible `10.21.4`.
+- Checkstyle-only `commons-beanutils` is overridden to `1.11.0`.
+- Checkstyle-only `commons-lang3` is overridden to `3.20.0`.
+- Checkstyle-only `plexus-utils` is overridden to `3.6.1`.
+
+Dependency-Check hardening:
+
+- `DEPENDENCY_CHECK_AUTO_UPDATE` controls online update behavior.
+- `DEPENDENCY_CHECK_DATA_DIRECTORY` can point to an ignored local NVD cache for repeatable release checks.
+- `DEPENDENCY_CHECK_FAIL_CVSS` defaults to `9.0`, so critical findings fail the build.
+
+The final R.01 Dependency-Check run generated HTML and JSON reports and found 0 vulnerabilities. The detailed release run is recorded in [RELEASE_VERIFICATION.md](RELEASE_VERIFICATION.md).
+
 ## Suppressions
 
 Suppressions live in `config/dependency-check/suppressions.xml`. The file is intentionally minimal and currently has no active suppressions. Any future suppression must include a clear justification, scope the affected dependency or CVE narrowly, and be revisited before release.

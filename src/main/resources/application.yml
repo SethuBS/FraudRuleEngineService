@@ -21,6 +21,7 @@ springdoc:
     enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
   swagger-ui:
     enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
+    version: ${SPRINGDOC_SWAGGER_UI_VERSION:5.32.5}
 
 management:
   endpoints:

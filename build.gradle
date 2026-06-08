@@ -11,6 +11,33 @@ version = '0.0.1-SNAPSHOT'
 description = 'Fraud Rule Engine Service API modular monolith scaffold'
 
 ext['testcontainers.version'] = '1.21.4'
+ext['tomcat.version'] = providers.gradleProperty('tomcat.version')
+        .orElse(providers.environmentVariable('TOMCAT_VERSION'))
+        .orElse('10.1.55')
+        .get()
+ext['log4j2.version'] = providers.gradleProperty('log4j2.version')
+        .orElse(providers.environmentVariable('LOG4J2_VERSION'))
+        .orElse('2.25.4')
+        .get()
+
+def checkstyleToolVersion = providers.gradleProperty('checkstyle.tool-version')
+        .orElse(providers.environmentVariable('CHECKSTYLE_TOOL_VERSION'))
+        .orElse('10.21.4')
+def checkstyleBeanutilsVersion = providers.gradleProperty('checkstyle.commons-beanutils.version')
+        .orElse(providers.environmentVariable('CHECKSTYLE_COMMONS_BEANUTILS_VERSION'))
+        .orElse('1.11.0')
+def checkstyleCommonsLangVersion = providers.gradleProperty('checkstyle.commons-lang3.version')
+        .orElse(providers.environmentVariable('CHECKSTYLE_COMMONS_LANG3_VERSION'))
+        .orElse('3.20.0')
+def checkstylePlexusUtilsVersion = providers.gradleProperty('checkstyle.plexus-utils.version')
+        .orElse(providers.environmentVariable('CHECKSTYLE_PLEXUS_UTILS_VERSION'))
+        .orElse('3.6.1')
+def dependencyCheckFailCvss = providers.gradleProperty('dependency-check.fail-cvss')
+        .orElse(providers.environmentVariable('DEPENDENCY_CHECK_FAIL_CVSS'))
+        .orElse('9.0')
+def swaggerUiVersion = providers.gradleProperty('swagger-ui.version')
+        .orElse(providers.environmentVariable('SWAGGER_UI_VERSION'))
+        .orElse('5.32.5')
 
 def testPostgresImage = providers.systemProperty('test.postgres.image')
         .orElse(providers.environmentVariable('TEST_POSTGRES_IMAGE'))
@@ -47,6 +74,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+    implementation "org.webjars:swagger-ui:${swaggerUiVersion.get()}"
     implementation 'org.apache.commons:commons-lang3:3.20.0'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
@@ -61,6 +89,11 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleToolVersion.get()}"
+    checkstyle "commons-beanutils:commons-beanutils:${checkstyleBeanutilsVersion.get()}"
+    checkstyle "org.apache.commons:commons-lang3:${checkstyleCommonsLangVersion.get()}"
+    checkstyle "org.codehaus.plexus:plexus-utils:${checkstylePlexusUtilsVersion.get()}"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -68,7 +101,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 checkstyle {
-    toolVersion = '10.21.4'
+    toolVersion = checkstyleToolVersion.get()
     configDirectory = file("${rootDir}/config/checkstyle")
 }
 
@@ -92,9 +125,9 @@ tasks.named('test') {
 }
 
 dependencyCheck {
-    autoUpdate = true
+    autoUpdate = (System.getenv('DEPENDENCY_CHECK_AUTO_UPDATE') ?: 'true').toBoolean()
     failOnError = false
-    failBuildOnCVSS = 11.0
+    failBuildOnCVSS = dependencyCheckFailCvss.get() as BigDecimal
     formats = ['HTML', 'JSON']
     suppressionFile = "${rootDir}/config/dependency-check/suppressions.xml"
     data.directory = System.getenv('DEPENDENCY_CHECK_DATA_DIRECTORY') ?: "${rootDir}/build/dependency-check-data"
