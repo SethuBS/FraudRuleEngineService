@@ -81,8 +81,9 @@ This backlog snapshot captures the Sprint 0 cards supplied on 6 June 2026. Plann
 
 ## Release Cards
 
-| Card   | Title                                     | Priority      | Labels                                     | Due          | Estimate | Local status                                            |
-|--------|-------------------------------------------|---------------|--------------------------------------------|--------------|---------:|---------------------------------------------------------|
-| `R.01` | Final build, tests, and dependency check  | `P0 Critical` | `Release`, `Testing`, `DevOps`, `Security` | 18 June 2026 |       3h | Implemented on `release/r-01-final-verification`        |
-| `R.02` | Final documentation and repository review | `P0 Critical` | `Release`, `Documentation`                 | 18 June 2026 |       2h | Implemented on `feature/r02-final-documentation-review` |
-| `R.03` | Final security review                     | `P0 Critical` | `Release`, `Security`                      | 18 June 2026 |       2h | Implemented on `feature/r03-final-security-review`      |
+| Card   | Title                                      | Priority      | Labels                                     | Due          | Estimate | Local status                                                |
+|--------|--------------------------------------------|---------------|--------------------------------------------|--------------|---------:|-------------------------------------------------------------|
+| `R.01` | Final build, tests, and dependency check   | `P0 Critical` | `Release`, `Testing`, `DevOps`, `Security` | 18 June 2026 |       3h | Implemented on `release/r-01-final-verification`            |
+| `R.02` | Final documentation and repository review  | `P0 Critical` | `Release`, `Documentation`                 | 18 June 2026 |       2h | Implemented on `feature/r02-final-documentation-review`     |
+| `R.03` | Final security review                      | `P0 Critical` | `Release`, `Security`                      | 18 June 2026 |       2h | Implemented on `feature/r03-final-security-review`          |
+| `R.04` | Tag release and create submission snapshot | `P0 Critical` | `Release`, `DevOps`                        | 18 June 2026 |       1h | Implemented on `development` with tag `v0.1.0-submission`   |

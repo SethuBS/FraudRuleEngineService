@@ -1040,5 +1040,6 @@ echo "Curl collection suite passed."
 - Architecture and interview notes: [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
 - Docker smoke test evidence: [docs/DOCKER_SMOKE_TEST.md](docs/DOCKER_SMOKE_TEST.md)
 - Release verification: [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md)
+- Submission snapshot: [docs/SUBMISSION_SNAPSHOT.md](docs/SUBMISSION_SNAPSHOT.md)
 - Final documentation review: [docs/FINAL_DOCUMENTATION_REVIEW.md](docs/FINAL_DOCUMENTATION_REVIEW.md)
 - GitHub Wiki: [FraudRuleEngineService Wiki](https://github.com/SethuBS/FraudRuleEngineService/wiki)
