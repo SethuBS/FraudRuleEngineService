@@ -15,8 +15,8 @@ The smoke test proved that a reviewer can clone the repository, build the Docker
 ## Commands Exercised
 
 ```powershell
-git clone --branch development https://github.com/SethuBS/FraudRuleEngineService.git C:\Development\FraudRuleEngineService-smoke-s4-07-20260607-233420
-cd C:\Development\FraudRuleEngineService-smoke-s4-07-20260607-233420
+git clone --branch development https://github.com/SethuBS/FraudRuleEngineService.git FraudRuleEngineService-smoke
+cd FraudRuleEngineService-smoke
 docker compose up --build -d
 ```
 
