@@ -509,7 +509,7 @@ assert_contains()
   local name="$1"
   local expected_text="$2"
 
-  if ! grep -q "$expected_text" "$RESPONSE_FILE"; then
+  if ! grep -F -q "$expected_text" "$RESPONSE_FILE"; then
     echo "FAIL ${name}: response did not contain ${expected_text}"
     cat "$RESPONSE_FILE"
     exit 1
@@ -521,6 +521,20 @@ fraudAnalystToken="$(./scripts/generate-jwt.sh --profile fraud-analyst)"
 
 request "readiness" 200 "$BASE_URL/actuator/health/readiness"
 assert_contains "readiness" '"status":"UP"'
+
+request "actuator_info" 200 \
+  "$BASE_URL/actuator/info" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+
+request "actuator_metrics" 200 \
+  "$BASE_URL/actuator/metrics" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "actuator_metrics" '"names":'
+
+request "actuator_prometheus" 200 \
+  "$BASE_URL/actuator/prometheus" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "actuator_prometheus" '# HELP'
 
 request "swagger_ui" 200 "$BASE_URL/swagger-ui/index.html"
 
@@ -536,6 +550,10 @@ assert_contains "evaluate_high_risk_transaction" '"transactionId":"tx-high-risk-
 assert_contains "evaluate_high_risk_transaction" '"decision":"FLAGGED"'
 assert_contains "evaluate_high_risk_transaction" '"riskScore":100'
 assert_contains "evaluate_high_risk_transaction" '"riskLevel":"CRITICAL"'
+assert_contains "evaluate_high_risk_transaction" '"ruleCode":"HIGH_VALUE_TRANSACTION"'
+assert_contains "evaluate_high_risk_transaction" '"ruleCode":"FOREIGN_COUNTRY_TRANSACTION"'
+assert_contains "evaluate_high_risk_transaction" '"ruleCode":"RISKY_MERCHANT_CATEGORY"'
+assert_contains "evaluate_high_risk_transaction" '"ruleCode":"SUSPICIOUS_MERCHANT"'
 
 request "submit_duplicate_event" 200 \
   -X POST "$BASE_URL/api/v1/transactions/evaluate" \
@@ -579,6 +597,336 @@ request "evaluate_low_risk_transaction" 200 \
 assert_contains "evaluate_low_risk_transaction" '"transactionId":"tx-low-risk-1"'
 assert_contains "evaluate_low_risk_transaction" '"decision":'
 assert_contains "evaluate_low_risk_transaction" '"riskLevel":'
+
+request "missing_fraud_alert_returns_404" 404 \
+  "$BASE_URL/api/v1/fraud-alerts/00000000-0000-0000-0000-000000000000" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "missing_fraud_alert_returns_404" '"code":"RESOURCE_NOT_FOUND"'
+assert_contains "missing_fraud_alert_returns_404" '"correlationId":'
+
+request "missing_transaction_fraud_evaluation_returns_404" 404 \
+  "$BASE_URL/api/v1/transactions/tx-missing-curl/fraud-evaluation" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "missing_transaction_fraud_evaluation_returns_404" '"code":"RESOURCE_NOT_FOUND"'
+assert_contains "missing_transaction_fraud_evaluation_returns_404" '"correlationId":'
+
+request "list_fraud_alerts_page_size_one" 200 \
+  "$BASE_URL/api/v1/fraud-alerts?customerId=customer-1&riskLevel=CRITICAL&page=0&size=1" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "list_fraud_alerts_page_size_one" '"page":0'
+assert_contains "list_fraud_alerts_page_size_one" '"size":1'
+assert_contains "list_fraud_alerts_page_size_one" '"totalElements":'
+
+request "list_fraud_alerts_account_and_date_range" 200 \
+  "$BASE_URL/api/v1/fraud-alerts?accountId=account-1&fromDate=2026-01-01T00:00:00Z&toDate=2027-01-01T00:00:00Z&page=0&size=5" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "list_fraud_alerts_account_and_date_range" '"transactionId":"tx-high-risk-1"'
+assert_contains "list_fraud_alerts_account_and_date_range" '"totalElements":'
+
+request "list_fraud_alerts_empty_risk_filter" 200 \
+  "$BASE_URL/api/v1/fraud-alerts?customerId=customer-1&riskLevel=LOW&page=0&size=20" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "list_fraud_alerts_empty_risk_filter" '"content":[]'
+assert_contains "list_fraud_alerts_empty_risk_filter" '"totalElements":0'
+
+request "list_fraud_alerts_invalid_date_range_returns_400" 400 \
+  "$BASE_URL/api/v1/fraud-alerts?fromDate=2027-01-01T00:00:00Z&toDate=2026-01-01T00:00:00Z&page=0&size=20" \
+  -H "Authorization: Bearer $fraudAnalystToken"
+assert_contains "list_fraud_alerts_invalid_date_range_returns_400" '"code":"VALIDATION_FAILED"'
+assert_contains "list_fraud_alerts_invalid_date_range_returns_400" '"fieldErrors":'
+
+cat > "$TMP_DIR/alternate-path-request.json" <<'JSON'
+{
+  "eventId": "event-curl-alternate-path-1",
+  "transactionId": "tx-curl-alternate-path-1",
+  "customerId": "customer-curl-alternate-path",
+  "accountId": "account-curl-alternate-path",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-alternate-path",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-alternate-path"
+}
+JSON
+
+request "evaluate_via_transaction_evaluations_path" 200 \
+  -X POST "$BASE_URL/api/v1/transaction-evaluations" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/alternate-path-request.json"
+assert_contains "evaluate_via_transaction_evaluations_path" '"transactionId":"tx-curl-alternate-path-1"'
+assert_contains "evaluate_via_transaction_evaluations_path" '"decision":"APPROVED"'
+assert_contains "evaluate_via_transaction_evaluations_path" '"riskScore":0'
+assert_contains "evaluate_via_transaction_evaluations_path" '"riskLevel":"LOW"'
+
+cat > "$TMP_DIR/high-value-boundary.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-high-value-boundary-1",
+  "transactionId": "tx-curl-rule-high-value-boundary-1",
+  "customerId": "customer-curl-rule-high-value",
+  "accountId": "account-curl-rule-high-value",
+  "amount": 10000.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-high-value-boundary",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-high-value-boundary"
+}
+JSON
+
+request "high_value_boundary_equals_threshold" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/high-value-boundary.json"
+assert_contains "high_value_boundary_equals_threshold" '"transactionId":"tx-curl-rule-high-value-boundary-1"'
+assert_contains "high_value_boundary_equals_threshold" '"decision":"APPROVED"'
+assert_contains "high_value_boundary_equals_threshold" '"riskScore":0'
+if grep -F -q '"ruleCode":"HIGH_VALUE_TRANSACTION"' "$RESPONSE_FILE"; then
+  echo "FAIL high_value_boundary_equals_threshold: high-value rule should not match at threshold"
+  cat "$RESPONSE_FILE"
+  exit 1
+fi
+
+cat > "$TMP_DIR/high-value-above.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-high-value-above-1",
+  "transactionId": "tx-curl-rule-high-value-above-1",
+  "customerId": "customer-curl-rule-high-value",
+  "accountId": "account-curl-rule-high-value",
+  "amount": 10000.01,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-high-value-above",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-high-value-above"
+}
+JSON
+
+request "high_value_above_threshold_rule" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/high-value-above.json"
+assert_contains "high_value_above_threshold_rule" '"transactionId":"tx-curl-rule-high-value-above-1"'
+assert_contains "high_value_above_threshold_rule" '"decision":"FLAGGED"'
+assert_contains "high_value_above_threshold_rule" '"riskScore":55'
+assert_contains "high_value_above_threshold_rule" '"riskLevel":"HIGH"'
+assert_contains "high_value_above_threshold_rule" '"ruleCode":"HIGH_VALUE_TRANSACTION"'
+
+cat > "$TMP_DIR/foreign-country.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-foreign-country-1",
+  "transactionId": "tx-curl-rule-foreign-country-1",
+  "customerId": "customer-curl-rule-foreign-country",
+  "accountId": "account-curl-rule-foreign-country",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "US",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-foreign-country",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-foreign-country"
+}
+JSON
+
+request "foreign_country_rule" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/foreign-country.json"
+assert_contains "foreign_country_rule" '"transactionId":"tx-curl-rule-foreign-country-1"'
+assert_contains "foreign_country_rule" '"decision":"REVIEW"'
+assert_contains "foreign_country_rule" '"riskScore":45'
+assert_contains "foreign_country_rule" '"riskLevel":"MEDIUM"'
+assert_contains "foreign_country_rule" '"ruleCode":"FOREIGN_COUNTRY_TRANSACTION"'
+
+cat > "$TMP_DIR/risky-category.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-risky-category-1",
+  "transactionId": "tx-curl-rule-risky-category-1",
+  "customerId": "customer-curl-rule-risky-category",
+  "accountId": "account-curl-rule-risky-category",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GAMBLING",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-risky-category",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-risky-category"
+}
+JSON
+
+request "risky_merchant_category_rule" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/risky-category.json"
+assert_contains "risky_merchant_category_rule" '"transactionId":"tx-curl-rule-risky-category-1"'
+assert_contains "risky_merchant_category_rule" '"decision":"REVIEW"'
+assert_contains "risky_merchant_category_rule" '"riskScore":30'
+assert_contains "risky_merchant_category_rule" '"riskLevel":"MEDIUM"'
+assert_contains "risky_merchant_category_rule" '"ruleCode":"RISKY_MERCHANT_CATEGORY"'
+
+cat > "$TMP_DIR/suspicious-merchant.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-suspicious-merchant-1",
+  "transactionId": "tx-curl-rule-suspicious-merchant-1",
+  "customerId": "customer-curl-rule-suspicious-merchant",
+  "accountId": "account-curl-rule-suspicious-merchant",
+  "amount": 100.50,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "MERCHANT-WATCHLIST",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-suspicious-merchant"
+}
+JSON
+
+request "suspicious_merchant_rule" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/suspicious-merchant.json"
+assert_contains "suspicious_merchant_rule" '"transactionId":"tx-curl-rule-suspicious-merchant-1"'
+assert_contains "suspicious_merchant_rule" '"decision":"FLAGGED"'
+assert_contains "suspicious_merchant_rule" '"riskScore":50'
+assert_contains "suspicious_merchant_rule" '"riskLevel":"HIGH"'
+assert_contains "suspicious_merchant_rule" '"ruleCode":"SUSPICIOUS_MERCHANT"'
+
+cat > "$TMP_DIR/unusual-baseline.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-unusual-baseline-1",
+  "transactionId": "tx-curl-rule-unusual-baseline-1",
+  "customerId": "customer-curl-rule-unusual",
+  "accountId": "account-curl-rule-unusual",
+  "amount": 100.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:00:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-unusual-baseline",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-unusual-baseline"
+}
+JSON
+
+request "seed_unusual_amount_baseline" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/unusual-baseline.json"
+assert_contains "seed_unusual_amount_baseline" '"transactionId":"tx-curl-rule-unusual-baseline-1"'
+assert_contains "seed_unusual_amount_baseline" '"riskScore":0'
+
+cat > "$TMP_DIR/unusual-trigger.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-unusual-trigger-1",
+  "transactionId": "tx-curl-rule-unusual-trigger-1",
+  "customerId": "customer-curl-rule-unusual",
+  "accountId": "account-curl-rule-unusual",
+  "amount": 400.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:01:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-unusual-trigger",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-unusual-trigger"
+}
+JSON
+
+request "unusual_amount_rule" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/unusual-trigger.json"
+assert_contains "unusual_amount_rule" '"transactionId":"tx-curl-rule-unusual-trigger-1"'
+assert_contains "unusual_amount_rule" '"decision":"REVIEW"'
+assert_contains "unusual_amount_rule" '"riskScore":45'
+assert_contains "unusual_amount_rule" '"riskLevel":"MEDIUM"'
+assert_contains "unusual_amount_rule" '"ruleCode":"UNUSUAL_AMOUNT"'
+
+for index in 1 2 3 4 5; do
+  cat > "$TMP_DIR/velocity-seed-$index.json" <<JSON
+{
+  "eventId": "event-curl-rule-velocity-seed-$index",
+  "transactionId": "tx-curl-rule-velocity-seed-$index",
+  "customerId": "customer-curl-rule-velocity",
+  "accountId": "account-curl-rule-velocity",
+  "amount": 10.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:0${index}:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-velocity-seed-$index",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-velocity-seed-$index"
+}
+JSON
+
+  request "seed_velocity_transaction_$index" 200 \
+    -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $systemIngestorToken" \
+    --data-binary @"$TMP_DIR/velocity-seed-$index.json"
+  assert_contains "seed_velocity_transaction_$index" "\"transactionId\":\"tx-curl-rule-velocity-seed-$index\""
+  assert_contains "seed_velocity_transaction_$index" '"riskScore":0'
+  if grep -F -q '"ruleCode":"VELOCITY_TRANSACTION"' "$RESPONSE_FILE"; then
+    echo "FAIL seed_velocity_transaction_$index: velocity rule should not match before threshold is exceeded"
+    cat "$RESPONSE_FILE"
+    exit 1
+  fi
+done
+
+cat > "$TMP_DIR/velocity-trigger.json" <<'JSON'
+{
+  "eventId": "event-curl-rule-velocity-trigger-1",
+  "transactionId": "tx-curl-rule-velocity-trigger-1",
+  "customerId": "customer-curl-rule-velocity",
+  "accountId": "account-curl-rule-velocity",
+  "amount": 10.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-07T08:06:00Z",
+  "merchantCategory": "GROCERY",
+  "country": "ZA",
+  "channel": "MOBILE",
+  "merchantId": "merchant-curl-rule-velocity-trigger",
+  "merchantName": "Corner Shop",
+  "deviceId": "device-curl-rule-velocity-trigger"
+}
+JSON
+
+request "velocity_transaction_rule" 200 \
+  -X POST "$BASE_URL/api/v1/transactions/evaluate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $systemIngestorToken" \
+  --data-binary @"$TMP_DIR/velocity-trigger.json"
+assert_contains "velocity_transaction_rule" '"transactionId":"tx-curl-rule-velocity-trigger-1"'
+assert_contains "velocity_transaction_rule" '"decision":"REVIEW"'
+assert_contains "velocity_transaction_rule" '"riskScore":35'
+assert_contains "velocity_transaction_rule" '"riskLevel":"MEDIUM"'
+assert_contains "velocity_transaction_rule" '"ruleCode":"VELOCITY_TRANSACTION"'
 
 cat > "$TMP_DIR/valid-request.json" <<'JSON'
 {
