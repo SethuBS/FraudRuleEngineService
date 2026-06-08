@@ -375,6 +375,18 @@ $token = .\scripts\generate-jwt.ps1 -Profile system-ingestor
 TOKEN="$(./scripts/generate-jwt.sh --profile system-ingestor)"
 ```
 
+For Git Bash, use Bash assignment syntax and the `.sh` script. For example:
+
+```bash
+ruleAdminToken="$(./scripts/generate-jwt.sh --profile rule-admin)"
+```
+
+For PowerShell, use PowerShell assignment syntax and the `.ps1` script:
+
+```powershell
+$ruleAdminToken = .\scripts\generate-jwt.ps1 -Profile rule-admin
+```
+
 Supported profiles:
 
 | Profile           | Scopes                                 |
