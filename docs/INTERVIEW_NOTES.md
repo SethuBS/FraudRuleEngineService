@@ -173,15 +173,15 @@ For higher assurance, later production versions could consider PostgreSQL row-le
 
 ## Interview Trade-Off Summary
 
-| Decision | Benefit | Cost Or Risk | Why It Is Acceptable Now |
-| --- | --- | --- | --- |
-| Modular monolith | Simple deployment and atomic writes | Less independent scaling | Assessment scope values correctness and reviewability first |
-| Code-first rules | Type-safe, testable, versioned fraud logic | Rule updates require deployment unless config-only | Clear audit trail and deterministic behaviour matter more than runtime editing |
-| Matched and unmatched rows | Stronger explainability | More storage per evaluation | Auditability is a core requirement |
-| Pre-check plus unique constraints | Fast duplicate path and concurrency safety | More duplicate-handling code | Correctness under race conditions requires database enforcement |
-| Sanitized payload retention | Debug support without permanent payloads | Sanitizer must stay maintained | Retention and redaction reduce privacy risk |
-| Local JWT scripts | Reviewer-friendly security testing | Not production auth | Clearly marked local-only; production uses external IdP |
-| Swagger local-only | Easy review and API discovery | Production docs surface disabled | Local convenience without production exposure |
+| Decision                          | Benefit                                    | Cost Or Risk                                       | Why It Is Acceptable Now                                                       |
+|-----------------------------------|--------------------------------------------|----------------------------------------------------|--------------------------------------------------------------------------------|
+| Modular monolith                  | Simple deployment and atomic writes        | Less independent scaling                           | Assessment scope values correctness and reviewability first                    |
+| Code-first rules                  | Type-safe, testable, versioned fraud logic | Rule updates require deployment unless config-only | Clear audit trail and deterministic behaviour matter more than runtime editing |
+| Matched and unmatched rows        | Stronger explainability                    | More storage per evaluation                        | Auditability is a core requirement                                             |
+| Pre-check plus unique constraints | Fast duplicate path and concurrency safety | More duplicate-handling code                       | Correctness under race conditions requires database enforcement                |
+| Sanitized payload retention       | Debug support without permanent payloads   | Sanitizer must stay maintained                     | Retention and redaction reduce privacy risk                                    |
+| Local JWT scripts                 | Reviewer-friendly security testing         | Not production auth                                | Clearly marked local-only; production uses external IdP                        |
+| Swagger local-only                | Easy review and API discovery              | Production docs surface disabled                   | Local convenience without production exposure                                  |
 
 ## Interview Closing Answer
 

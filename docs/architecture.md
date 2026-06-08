@@ -21,16 +21,16 @@ Client
 
 ## Package Responsibilities
 
-| Package | Responsibility |
-| --- | --- |
-| `com.capitec.fraud.api` | REST controllers, request and response DTOs, validation boundaries, and API error mapping. |
-| `com.capitec.fraud.application` | Use-case orchestration, transaction boundaries, context loading, risk scoring, privacy controls, and query services. |
-| `com.capitec.fraud.domain` | Framework-light fraud concepts, normalized transaction models, rule outcomes, and domain enums. |
-| `com.capitec.fraud.rules` | Code-first fraud rule implementations. |
-| `com.capitec.fraud.infrastructure.persistence` | JPA entities, repositories, Flyway-backed persistence integration, and database bootstrap support. |
-| `com.capitec.fraud.infrastructure.security` | JWT Resource Server configuration and authorization rules. |
-| `com.capitec.fraud.infrastructure.observability` | Correlation-id propagation, logging support, metrics, health, and operational filters. |
-| `com.capitec.fraud.infrastructure.config` | Configuration properties, OpenAPI setup, clock wiring, and runtime defaults. |
+| Package                                          | Responsibility                                                                                                       |
+|--------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `com.capitec.fraud.api`                          | REST controllers, request and response DTOs, validation boundaries, and API error mapping.                           |
+| `com.capitec.fraud.application`                  | Use-case orchestration, transaction boundaries, context loading, risk scoring, privacy controls, and query services. |
+| `com.capitec.fraud.domain`                       | Framework-light fraud concepts, normalized transaction models, rule outcomes, and domain enums.                      |
+| `com.capitec.fraud.rules`                        | Code-first fraud rule implementations.                                                                               |
+| `com.capitec.fraud.infrastructure.persistence`   | JPA entities, repositories, Flyway-backed persistence integration, and database bootstrap support.                   |
+| `com.capitec.fraud.infrastructure.security`      | JWT Resource Server configuration and authorization rules.                                                           |
+| `com.capitec.fraud.infrastructure.observability` | Correlation-id propagation, logging support, metrics, health, and operational filters.                               |
+| `com.capitec.fraud.infrastructure.config`        | Configuration properties, OpenAPI setup, clock wiring, and runtime defaults.                                         |
 
 ## Guardrails
 
