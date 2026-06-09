@@ -9,17 +9,18 @@ This document records the final cleanup and submission-snapshot review for `Frau
 
 ## Cleanup Results
 
-| Area | Result |
-|------|--------|
-| Package-info files | Removed all `package-info.java` files from `src/main/java`. |
-| Java warnings | `.\gradlew.bat clean build --warning-mode all` passed without avoidable project warnings. |
-| Test output noise | Test JVM class-data-sharing warning was removed by configurable `TEST_JVM_ARGS` / `-Ptest.jvm-args`, defaulting to `-Xshare:off`. Test root logging defaults to configurable `WARN`. |
-| Dependency Check runtime | Dependency Check data defaults to ignored `.gradle/dependency-check-data` so `clean` does not force a full NVD refresh. |
-| Dependency Check analyzers | RetireJS and OSS Index are configurable and disabled by default for this Java/Spring service. NVD-backed dependency analysis remains enabled. |
-| Secrets scan | Reviewed password, token, API key, private-key, authorization-header, local-path, and localhost matches. Findings are documented local reviewer material, test fixtures, configurable defaults, or local examples; no production secrets were found. |
-| API boundary | Controllers return API DTOs, not JPA entities. Persistence remains isolated under infrastructure packages. |
-| Money handling | Main code uses `BigDecimal` for monetary amounts; no `double` or `float` money handling was found. |
-| Rule design | Fraud rules continue to implement the shared `FraudRule` strategy contract. New rules do not require HTTP contract changes. |
+| Area                       | Result                                                                                                                                                                                                                                               |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Package-info files         | Removed all `package-info.java` files from `src/main/java`.                                                                                                                                                                                          |
+| Generated artifacts        | Removed an accidental JVM heap dump from the workspace and added `*.hprof` to `.gitignore`.                                                                                                                                                          |
+| Java warnings              | `.\gradlew.bat clean build --warning-mode all` passed without avoidable project warnings.                                                                                                                                                            |
+| Test output noise          | Test JVM class-data-sharing warning was removed by configurable `TEST_JVM_ARGS` / `-Ptest.jvm-args`, defaulting to `-Xshare:off`. Test root logging defaults to configurable `WARN`.                                                                 |
+| Dependency Check runtime   | Dependency Check data defaults to ignored `.gradle/dependency-check-data` so `clean` does not force a full NVD refresh.                                                                                                                              |
+| Dependency Check analyzers | RetireJS and OSS Index are configurable and disabled by default for this Java/Spring service. NVD-backed dependency analysis remains enabled.                                                                                                        |
+| Secrets scan               | Reviewed password, token, API key, private-key, authorization-header, local-path, and localhost matches. Findings are documented local reviewer material, test fixtures, configurable defaults, or local examples; no production secrets were found. |
+| API boundary               | Controllers return API DTOs, not JPA entities. Persistence remains isolated under infrastructure packages.                                                                                                                                           |
+| Money handling             | Main code uses `BigDecimal` for monetary amounts; no `double` or `float` money handling was found.                                                                                                                                                   |
+| Rule design                | Fraud rules continue to implement the shared `FraudRule` strategy contract. New rules do not require HTTP contract changes.                                                                                                                          |
 
 ## Warning Notes
 
@@ -40,16 +41,25 @@ These commands were run during this cleanup pass:
 .\gradlew.bat clean test --warning-mode all
 .\gradlew.bat bootJar
 .\gradlew.bat dependencyCheckAnalyze
+docker compose down -v
+docker compose up --build -d
+docker compose down
 ```
 
 ## Verification Results
 
-| Command | Result |
-|---------|--------|
-| `.\gradlew.bat clean build --warning-mode all` | Passed |
-| `.\gradlew.bat clean test --warning-mode all` | Passed |
-| `.\gradlew.bat bootJar` | Passed |
-| `.\gradlew.bat dependencyCheckAnalyze` | Passed, 0 vulnerabilities |
+| Command                                        | Result                    |
+|------------------------------------------------|---------------------------|
+| `.\gradlew.bat clean build --warning-mode all` | Passed                    |
+| `.\gradlew.bat clean test --warning-mode all`  | Passed                    |
+| `.\gradlew.bat bootJar`                        | Passed                    |
+| `.\gradlew.bat dependencyCheckAnalyze`         | Passed, 0 vulnerabilities |
+| `docker compose down -v`                       | Passed                    |
+| `docker compose up --build -d`                 | Passed; PostgreSQL and application containers healthy |
+| `GET /actuator/health/readiness`               | Passed; returned `UP`     |
+| README curl collection suite                    | Passed                    |
+| Prod profile Swagger check                     | Passed; `/swagger-ui/index.html` and `/v3/api-docs` returned `404` |
+| `docker compose down`                          | Passed                    |
 
 ## Release Snapshot Rule
 

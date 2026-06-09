@@ -16,6 +16,7 @@ Start with these links if you are reviewing the repository from GitHub:
 - Understand the architecture: [docs/architecture.md](docs/architecture.md) and [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md)
 - Inspect the API manually: [API Examples](#api-examples) and [Curl Collection Test Suite](#curl-collection-test-suite)
 - Verify release readiness: [docs/RELEASE_VERIFICATION.md](docs/RELEASE_VERIFICATION.md)
+- Review final cleanup evidence: [docs/FINAL_CLEANUP_RELEASE_REVIEW.md](docs/FINAL_CLEANUP_RELEASE_REVIEW.md)
 - Review security notes: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)
 - Browse the GitHub Wiki: [FraudRuleEngineService Wiki](https://github.com/SethuBS/FraudRuleEngineService/wiki)
 
@@ -261,6 +262,12 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Docker PostgreSQL host port                  | `POSTGRES_HOST_PORT`                                                 | `5432`                                                                                 |
 | Test PostgreSQL image                        | `TEST_POSTGRES_IMAGE` or `-Dtest.postgres.image`                     | `postgres:16-alpine`                                                                   |
 | Test PostgreSQL startup timeout              | `TEST_POSTGRES_STARTUP_TIMEOUT` or `-Dtest.postgres.startup-timeout` | `PT2M`                                                                                 |
+| Test JVM arguments                           | `TEST_JVM_ARGS` or `-Ptest.jvm-args`                                 | `-Xshare:off`                                                                          |
+| Test root logging level                      | `TEST_LOGGING_LEVEL_ROOT` or `-Ptest.logging.level.root`             | `WARN`                                                                                 |
+| Dependency Check fail CVSS                   | `DEPENDENCY_CHECK_FAIL_CVSS` or `-Pdependency-check.fail-cvss`       | `9.0`                                                                                  |
+| Dependency Check data directory              | `DEPENDENCY_CHECK_DATA_DIRECTORY` or `-Pdependency-check.data-directory` | `.gradle/dependency-check-data`                                                   |
+| Dependency Check RetireJS analyzer           | `DEPENDENCY_CHECK_RETIREJS_ENABLED` or `-Pdependency-check.retirejs.enabled` | `false`                                                                          |
+| Dependency Check OSS Index analyzer          | `DEPENDENCY_CHECK_OSS_INDEX_ENABLED` or `-Pdependency-check.oss-index.enabled` | `false`                                                                        |
 
 ## Docker
 
@@ -349,7 +356,7 @@ Security/dependency review can be run separately:
 .\gradlew.bat dependencyCheckAnalyze
 ```
 
-Use `NVD_API_KEY` from an environment variable or an ignored `.local/` file for faster NVD updates. Dependency-Check also supports `DEPENDENCY_CHECK_AUTO_UPDATE`, `DEPENDENCY_CHECK_DATA_DIRECTORY`, and `DEPENDENCY_CHECK_FAIL_CVSS` for offline/repeatable release verification. Current release patch versions for Tomcat, Log4j, Swagger UI, and Checkstyle tooling are configurable from Gradle properties or matching environment variables in `build.gradle`.
+Use `NVD_API_KEY` from an environment variable or an ignored `.local/` file for faster NVD updates. Dependency-Check also supports `DEPENDENCY_CHECK_AUTO_UPDATE`, `DEPENDENCY_CHECK_DATA_DIRECTORY` or `-Pdependency-check.data-directory`, and `DEPENDENCY_CHECK_FAIL_CVSS` for offline/repeatable release verification. By default, its local vulnerability database is stored under ignored `.gradle/dependency-check-data` so `clean` does not force a full NVD refresh. Current release patch versions for Tomcat, Log4j, Swagger UI, and Checkstyle tooling are configurable from Gradle properties or matching environment variables in `build.gradle`.
 
 ## Security Model
 

@@ -35,6 +35,15 @@ def checkstylePlexusUtilsVersion = providers.gradleProperty('checkstyle.plexus-u
 def dependencyCheckFailCvss = providers.gradleProperty('dependency-check.fail-cvss')
         .orElse(providers.environmentVariable('DEPENDENCY_CHECK_FAIL_CVSS'))
         .orElse('9.0')
+def dependencyCheckDataDirectory = providers.gradleProperty('dependency-check.data-directory')
+        .orElse(providers.environmentVariable('DEPENDENCY_CHECK_DATA_DIRECTORY'))
+        .orElse("${rootDir}/.gradle/dependency-check-data")
+def dependencyCheckRetireJsEnabled = providers.gradleProperty('dependency-check.retirejs.enabled')
+        .orElse(providers.environmentVariable('DEPENDENCY_CHECK_RETIREJS_ENABLED'))
+        .orElse('false')
+def dependencyCheckOssIndexEnabled = providers.gradleProperty('dependency-check.oss-index.enabled')
+        .orElse(providers.environmentVariable('DEPENDENCY_CHECK_OSS_INDEX_ENABLED'))
+        .orElse('false')
 def swaggerUiVersion = providers.gradleProperty('swagger-ui.version')
         .orElse(providers.environmentVariable('SWAGGER_UI_VERSION'))
         .orElse('5.32.5')
@@ -45,6 +54,12 @@ def testPostgresImage = providers.systemProperty('test.postgres.image')
 def testPostgresStartupTimeout = providers.systemProperty('test.postgres.startup-timeout')
         .orElse(providers.environmentVariable('TEST_POSTGRES_STARTUP_TIMEOUT'))
         .orElse('PT2M')
+def testJvmArgs = providers.gradleProperty('test.jvm-args')
+        .orElse(providers.environmentVariable('TEST_JVM_ARGS'))
+        .orElse('-Xshare:off')
+def testRootLoggingLevel = providers.gradleProperty('test.logging.level.root')
+        .orElse(providers.environmentVariable('TEST_LOGGING_LEVEL_ROOT'))
+        .orElse('WARN')
 
 base {
     archivesName = 'fraud-rule-engine-service'
@@ -117,6 +132,10 @@ tasks.named('test') {
     systemProperty 'fraud.raw-payload.cleanup.enabled', 'false'
     systemProperty 'test.postgres.image', testPostgresImage.get()
     systemProperty 'test.postgres.startup-timeout', testPostgresStartupTimeout.get()
+    systemProperty 'logging.level.root', testRootLoggingLevel.get()
+    if (!testJvmArgs.get().trim().isEmpty()) {
+        jvmArgs testJvmArgs.get().trim().split('\\s+') as List
+    }
     if (System.getProperty('os.name').toLowerCase().contains('windows')) {
         if (!System.getenv('DOCKER_HOST')) {
             environment 'DOCKER_HOST', 'npipe:////./pipe/docker_engine_linux'
@@ -130,9 +149,16 @@ dependencyCheck {
     failBuildOnCVSS = dependencyCheckFailCvss.get() as BigDecimal
     formats = ['HTML', 'JSON']
     suppressionFile = "${rootDir}/config/dependency-check/suppressions.xml"
-    data.directory = System.getenv('DEPENDENCY_CHECK_DATA_DIRECTORY') ?: "${rootDir}/build/dependency-check-data"
+    data.directory = dependencyCheckDataDirectory.get()
     analyzers {
         assemblyEnabled = false
+        ossIndexEnabled = dependencyCheckOssIndexEnabled.get().toBoolean()
+        retirejs {
+            enabled = dependencyCheckRetireJsEnabled.get().toBoolean()
+        }
+        ossIndex {
+            enabled = dependencyCheckOssIndexEnabled.get().toBoolean()
+        }
     }
     nvd {
         apiKey = System.getenv('NVD_API_KEY') ?: ''
