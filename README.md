@@ -215,10 +215,17 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Prometheus export enabled                    | `MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED`                       | `true`                                                                                 |
 | Application info name                        | `INFO_APP_NAME`                                                      | `FraudRuleEngineService`                                                               |
 | Application info version                     | `INFO_APP_VERSION`                                                   | `0.0.1-SNAPSHOT`                                                                       |
+| JDBC driver class                            | `SPRING_DATASOURCE_DRIVER_CLASS_NAME`                                | `org.postgresql.Driver`                                                                |
+| Hikari pool name                             | `SPRING_DATASOURCE_HIKARI_POOL_NAME`                                 | `FraudRuleEngineHikariPool`                                                            |
+| Hikari minimum idle connections              | `SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE`                              | `5`                                                                                    |
+| Hikari maximum pool size                     | `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE`                         | `10`                                                                                   |
+| Hikari auto-commit                           | `SPRING_DATASOURCE_HIKARI_AUTO_COMMIT`                               | `true`                                                                                 |
+| Hikari transaction isolation                 | `SPRING_DATASOURCE_HIKARI_TRANSACTION_ISOLATION`                     | `TRANSACTION_READ_COMMITTED`                                                           |
 | Error and logging correlation header         | `FRAUD_API_ERRORS_CORRELATION_ID_HEADER`                             | `X-Correlation-ID`                                                                     |
 | Correlation MDC key                          | `FRAUD_OBSERVABILITY_CORRELATION_ID_MDC_KEY`                         | `correlationId`                                                                        |
 | Correlation header maximum length            | `FRAUD_OBSERVABILITY_CORRELATION_ID_MAX_LENGTH`                      | `128`                                                                                  |
 | Log level pattern                            | `LOGGING_PATTERN_LEVEL`                                              | `%5p [correlationId=%X{correlationId}]`                                                |
+| Hibernate connection-pooling summary level   | `LOGGING_LEVEL_HIBERNATE_CONNECTION_POOLING`                         | `WARN`                                                                                 |
 | Safe internal error message                  | `FRAUD_API_ERRORS_INTERNAL_SERVER_ERROR_MESSAGE`                     | `An unexpected error occurred`                                                         |
 | Generic not-found error message              | `FRAUD_API_ERRORS_RESOURCE_NOT_FOUND_MESSAGE`                        | `Resource was not found`                                                               |
 | Security public paths                        | `FRAUD_SECURITY_PUBLIC_PATHS`                                        | `/actuator/health,/actuator/health/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html` |
@@ -368,6 +375,10 @@ Operational detail endpoints require a JWT with the configured `actuator:read` s
 - `GET /actuator/metrics`
 - `GET /actuator/metrics/{name}`
 - `GET /actuator/prometheus`
+
+Hikari connection-pool metrics are available through the same protected metrics endpoint after the datasource is initialized. Useful pool checks include `GET /actuator/metrics/hikaricp.connections.active`, `GET /actuator/metrics/hikaricp.connections.idle`, and `GET /actuator/metrics/hikaricp.connections.max`.
+
+Hibernate's startup `HHH10001005` connection-pooling summary can report `undefined/unknown` for Spring-managed Hikari values even when the pool is configured correctly. The service suppresses that Hibernate summary by default and logs a safe application-owned datasource line on startup with the configured pool name, driver, minimum idle, maximum pool size, auto-commit mode, and transaction isolation.
 
 Only `health`, `info`, `metrics`, and `prometheus` are exposed by default. Dangerous actuator endpoints such as environment, beans, configprops, heapdump, threaddump, loggers, and shutdown are not exposed.
 
