@@ -48,18 +48,18 @@ docker compose down
 
 ## Verification Results
 
-| Command                                        | Result                    |
-|------------------------------------------------|---------------------------|
-| `.\gradlew.bat clean build --warning-mode all` | Passed                    |
-| `.\gradlew.bat clean test --warning-mode all`  | Passed                    |
-| `.\gradlew.bat bootJar`                        | Passed                    |
-| `.\gradlew.bat dependencyCheckAnalyze`         | Passed, 0 vulnerabilities |
-| `docker compose down -v`                       | Passed                    |
-| `docker compose up --build -d`                 | Passed; PostgreSQL and application containers healthy |
-| `GET /actuator/health/readiness`               | Passed; returned `UP`     |
-| README curl collection suite                    | Passed                    |
+| Command                                        | Result                                                             |
+|------------------------------------------------|--------------------------------------------------------------------|
+| `.\gradlew.bat clean build --warning-mode all` | Passed                                                             |
+| `.\gradlew.bat clean test --warning-mode all`  | Passed                                                             |
+| `.\gradlew.bat bootJar`                        | Passed                                                             |
+| `.\gradlew.bat dependencyCheckAnalyze`         | Passed, 0 vulnerabilities                                          |
+| `docker compose down -v`                       | Passed                                                             |
+| `docker compose up --build -d`                 | Passed; PostgreSQL and application containers healthy              |
+| `GET /actuator/health/readiness`               | Passed; returned `UP`                                              |
+| README curl collection suite                   | Passed                                                             |
 | Prod profile Swagger check                     | Passed; `/swagger-ui/index.html` and `/v3/api-docs` returned `404` |
-| `docker compose down`                          | Passed                    |
+| `docker compose down`                          | Passed                                                             |
 
 ## Release Snapshot Rule
 
