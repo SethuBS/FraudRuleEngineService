@@ -64,7 +64,7 @@ Build-tooling updates:
 Dependency-Check hardening:
 
 - `DEPENDENCY_CHECK_AUTO_UPDATE` controls online update behavior.
-- `DEPENDENCY_CHECK_DATA_DIRECTORY` can point to an ignored local NVD cache for repeatable release checks.
+- `DEPENDENCY_CHECK_DATA_DIRECTORY` or `-Pdependency-check.data-directory` can point to an ignored local NVD cache for repeatable release checks. The default local cache is `.gradle/dependency-check-data`, which is ignored and survives `clean`.
 - `DEPENDENCY_CHECK_FAIL_CVSS` defaults to `9.0`, so critical findings fail the build.
 
 The final R.01 Dependency-Check run generated HTML and JSON reports and found 0 vulnerabilities. The detailed release run is recorded in [RELEASE_VERIFICATION.md](RELEASE_VERIFICATION.md).
