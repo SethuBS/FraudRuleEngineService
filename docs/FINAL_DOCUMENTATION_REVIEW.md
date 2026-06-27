@@ -21,7 +21,7 @@ The review was performed from the perspective of a reviewer opening the GitHub r
 | Docker instructions     | README documents `docker compose up --build`, health checks, ports, environment variables, and shutdown                        |
 | Test instructions       | README documents Gradle test commands and Dependency-Check usage                                                               |
 | Security model          | README and `docs/SECURITY_REVIEW.md` explain JWT scopes, local-only token generation, actuator access, and safe errors         |
-| Known limitations       | README honestly lists out-of-scope analyst workflow, Kafka ingestion, tenant model, production IdP setup, and Docker hardening |
+| Known limitations       | README honestly lists out-of-scope analyst workflow, Kafka production hardening, tenant model, production IdP setup, and Docker hardening |
 | GitHub Wiki             | Wiki is published and linked from the README                                                                                   |
 | Spelling and formatting | Markdown formatting and obvious stale references reviewed                                                                      |
 

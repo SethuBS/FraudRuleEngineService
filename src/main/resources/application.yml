@@ -22,6 +22,17 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:19092}
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:fraud-rule-engine-service}
+      auto-offset-reset: ${SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
+      enable-auto-commit: ${SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT:false}
+      key-deserializer: ${SPRING_KAFKA_CONSUMER_KEY_DESERIALIZER:org.apache.kafka.common.serialization.StringDeserializer}
+      value-deserializer: ${SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER:org.apache.kafka.common.serialization.StringDeserializer}
+    producer:
+      key-serializer: ${SPRING_KAFKA_PRODUCER_KEY_SERIALIZER:org.apache.kafka.common.serialization.StringSerializer}
+      value-serializer: ${SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER:org.apache.kafka.common.serialization.StringSerializer}
 
 springdoc:
   api-docs:
@@ -155,6 +166,24 @@ fraud:
   rule-catalog:
     enabled-by-default: ${FRAUD_RULE_CATALOG_ENABLED_BY_DEFAULT:true}
     seed-on-startup: ${FRAUD_RULE_CATALOG_SEED_ON_STARTUP:true}
+  kafka:
+    enabled: ${FRAUD_KAFKA_ENABLED:false}
+    transaction-events-topic: ${FRAUD_KAFKA_TRANSACTION_EVENTS_TOPIC:transaction-events}
+    dead-letter-topic: ${FRAUD_KAFKA_DEAD_LETTER_TOPIC:transaction-events.dlq}
+    consumer-group: ${FRAUD_KAFKA_CONSUMER_GROUP:fraud-rule-engine-service}
+    expected-event-type: ${FRAUD_KAFKA_EXPECTED_EVENT_TYPE:TransactionEvaluationRequested}
+    supported-schema-version: ${FRAUD_KAFKA_SUPPORTED_SCHEMA_VERSION:1}
+    headers:
+      correlation-id: ${FRAUD_KAFKA_HEADER_CORRELATION_ID:correlationId}
+      event-id: ${FRAUD_KAFKA_HEADER_EVENT_ID:eventId}
+      event-type: ${FRAUD_KAFKA_HEADER_EVENT_TYPE:eventType}
+      schema-version: ${FRAUD_KAFKA_HEADER_SCHEMA_VERSION:schemaVersion}
+    retry:
+      max-attempts: ${FRAUD_KAFKA_RETRY_MAX_ATTEMPTS:3}
+      backoff: ${FRAUD_KAFKA_RETRY_BACKOFF:PT2S}
+    topics:
+      partitions: ${FRAUD_KAFKA_TOPIC_PARTITIONS:1}
+      replication-factor: ${FRAUD_KAFKA_TOPIC_REPLICATION_FACTOR:1}
   rules:
     foreign-country-transaction:
       expected-country: ${FRAUD_RULES_FOREIGN_COUNTRY_TRANSACTION_EXPECTED_COUNTRY:ZA}

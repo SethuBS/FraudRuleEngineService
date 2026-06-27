@@ -22,7 +22,8 @@ class ApiExampleContractTest
     @ValueSource(strings = {
         "examples/high-risk-transaction.json",
         "examples/low-risk-transaction.json",
-        "examples/duplicate-event.json"
+        "examples/duplicate-event.json",
+        "examples/kafka-high-risk-transaction-event.json"
     })
     void transactionRequestExamplesMatchTheHttpContract(String examplePath)
             throws Exception
