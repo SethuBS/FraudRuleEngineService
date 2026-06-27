@@ -1,11 +1,12 @@
 package com.capitec.fraud.infrastructure.messaging.kafka;
 
+import static com.capitec.fraud.infrastructure.messaging.kafka.KafkaRecordHeaders.optionalHeader;
+
 import com.capitec.fraud.application.TransactionEvaluationService;
 import com.capitec.fraud.infrastructure.config.FraudKafkaProperties;
 import com.capitec.fraud.infrastructure.config.FraudObservabilityProperties;
 import com.capitec.fraud.infrastructure.persistence.repository.ProcessedEventRepository;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -65,12 +66,12 @@ public class TransactionEventConsumer
         {
             metrics.recordFailedEvent();
             var headers = kafkaProperties.headers();
-            withOptionalCorrelationId(optionalHeader(record, headers.correlationId()), () -> LOG.warn(
+            withOptionalCorrelationId(optionalHeader(record.headers(), headers.correlationId()), () -> LOG.warn(
                     "event=kafka_transaction_event_failed topic={} partition={} offset={} eventId={} reason={}",
                     record.topic(),
                     record.partition(),
                     record.offset(),
-                    optionalHeader(record, headers.eventId()).orElse("unknown"),
+                    optionalHeader(record.headers(), headers.eventId()).orElse("unknown"),
                     ex.getClass().getSimpleName()));
             throw ex;
         }
@@ -138,14 +139,4 @@ public class TransactionEventConsumer
         withCorrelationId(correlationId.get(), action);
     }
 
-    private static Optional<String> optionalHeader(ConsumerRecord<String, String> record, String name)
-    {
-        var header = record.headers().lastHeader(name);
-        if (header == null || header.value() == null || header.value().length == 0)
-        {
-            return Optional.empty();
-        }
-
-        return Optional.of(new String(header.value(), StandardCharsets.UTF_8));
-    }
 }

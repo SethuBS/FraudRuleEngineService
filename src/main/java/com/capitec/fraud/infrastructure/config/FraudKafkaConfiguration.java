@@ -1,10 +1,9 @@
 package com.capitec.fraud.infrastructure.config;
 
+import static com.capitec.fraud.infrastructure.messaging.kafka.KafkaRecordHeaders.optionalHeader;
+
 import com.capitec.fraud.infrastructure.messaging.kafka.KafkaMessageValidationException;
 import com.capitec.fraud.infrastructure.messaging.kafka.KafkaTransactionEventMetrics;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -98,21 +97,10 @@ public class FraudKafkaConfiguration
                 record.topic(),
                 record.partition(),
                 record.offset(),
-                optionalHeader(record, properties.headers().eventId()).orElse("unknown"),
+                optionalHeader(record.headers(), properties.headers().eventId()).orElse("unknown"),
                 properties.deadLetterTopic(),
                 exception.getClass().getSimpleName());
 
         return new TopicPartition(properties.deadLetterTopic(), record.partition());
-    }
-
-    private static Optional<String> optionalHeader(ConsumerRecord<?, ?> record, String name)
-    {
-        var header = record.headers().lastHeader(name);
-        if (header == null || header.value() == null || header.value().length == 0)
-        {
-            return Optional.empty();
-        }
-
-        return Optional.of(new String(header.value(), StandardCharsets.UTF_8));
     }
 }
