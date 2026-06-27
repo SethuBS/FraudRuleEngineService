@@ -7,10 +7,12 @@ RUN chmod +x gradlew \
 COPY src src
 RUN ./gradlew bootJar --no-daemon
 
-FROM eclipse-temurin:17-jre-alpine
-RUN apk add --no-cache curl \
-    && addgroup -S fraud \
-    && adduser -S fraud -G fraud
+FROM eclipse-temurin:17-jre
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system fraud \
+    && useradd --system --gid fraud --home-dir /app --shell /usr/sbin/nologin fraud
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar
 USER fraud

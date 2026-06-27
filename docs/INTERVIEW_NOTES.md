@@ -130,15 +130,15 @@ Logging is intentionally limited to support-safe facts: event identifiers, trans
 
 Actuator exposure is narrow. Health, liveness, and readiness are exposed for platform checks. Readiness includes the database. Metrics and Prometheus are available only when configured and authorized.
 
-## What Would Change First For Kafka
+## Kafka / Event Stream Path
 
-The first change would be adding a Kafka adapter around the existing `EvaluateTransactionUseCase`, not rewriting the domain or rule engine. A consumer would deserialize transaction events, validate them, pass them to the same use case, and publish optional outcome events after successful persistence.
+The Kafka-compatible path is implemented as an infrastructure adapter around the existing `EvaluateTransactionUseCase`, not as a separate fraud engine. The consumer deserializes transaction events, validates required headers and schema version, maps the payload to the same application command used by HTTP, and lets the existing use case handle idempotency, rules, persistence, and alert creation.
 
 The next design points would be:
 
 - Message key choice for ordering and partitioning, likely event id, account id, or customer id depending on the use case.
-- Consumer retry and dead-letter handling.
-- Idempotency reuse through `processed_events.event_id`.
+- Schema Registry or contract-version management beyond the current configured schema version.
+- Broker authentication and TLS for non-local environments.
 - Outbox pattern if downstream decision or alert events must be published reliably after the database commit.
 - Operational metrics for lag, retries, duplicate events, and processing failures.
 
@@ -185,4 +185,4 @@ For higher assurance, later production versions could consider PostgreSQL row-le
 
 ## Interview Closing Answer
 
-The project is intentionally small in deployment shape but production-minded in boundaries. It demonstrates a secure, auditable fraud evaluation flow with deterministic rules, idempotent persistence, safe errors, correlation ids, Testcontainers coverage, Docker runtime, and reviewer documentation. The main future evolution would be adding adapters and bounded modules around the existing use cases before extracting separate services.
+The project is intentionally small in deployment shape but production-minded in boundaries. It demonstrates a secure, auditable fraud evaluation flow with deterministic rules, idempotent persistence, safe errors, correlation ids, Testcontainers coverage, Docker runtime, optional Kafka-compatible ingestion, and reviewer documentation. The main future evolution would be adding bounded modules around the existing use cases before extracting separate services.

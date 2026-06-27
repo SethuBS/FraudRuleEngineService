@@ -15,7 +15,7 @@ Estimate: 1.5 hours
 | Input                  | Categorized transaction event                                                         |
 | Output                 | Fraud decision, risk score, rule evaluation results, and fraud alert where applicable |
 | Storage                | PostgreSQL                                                                            |
-| API style              | REST                                                                                  |
+| API style              | REST, with an optional Kafka-compatible ingestion adapter                             |
 | Security model         | JWT OAuth2 Resource Server                                                            |
 | Target submission date | 18 June 2026                                                                          |
 | Official due date      | 24 June 2026                                                                          |
@@ -28,6 +28,7 @@ Estimate: 1.5 hours
 - Persist normalized events, rule outcomes, and alerts.
 - Return clear explanations for matched fraud rules.
 - Expose retrieval APIs for alerts, event evaluations, and rule metadata.
+- Consume categorized transaction events from a Kafka-compatible topic when enabled.
 - Run locally with Docker and PostgreSQL.
 - Provide OpenAPI and reviewer-friendly API examples.
 - Include automated test coverage appropriate to the risk of each feature.
@@ -36,7 +37,7 @@ Estimate: 1.5 hours
 ## Non-Goals For Target Submission
 
 - Full analyst workflow with assignment, comments, status history, and resolution actions.
-- Full Kafka ingestion implementation.
+- Production Kafka cluster operations, Schema Registry, broker authentication, and outcome-event publishing.
 - Multi-tenant RBAC and tenant-isolated queries.
 - Notifications through email, SMS, webhook, or case-management systems.
 - Machine learning models or adaptive scoring.

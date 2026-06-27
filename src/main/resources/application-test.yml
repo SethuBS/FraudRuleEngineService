@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  kafka:
+    consumer:
+      auto-offset-reset: ${SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
+
+fraud:
+  kafka:
+    enabled: ${FRAUD_KAFKA_ENABLED:false}
+    retry:
+      max-attempts: ${FRAUD_KAFKA_RETRY_MAX_ATTEMPTS:1}
+      backoff: ${FRAUD_KAFKA_RETRY_BACKOFF:PT1S}

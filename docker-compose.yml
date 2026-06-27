@@ -1,4 +1,32 @@
 services:
+  redpanda:
+    image: ${REDPANDA_IMAGE:-redpandadata/redpanda:v26.1.11}
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "${REDPANDA_HOST_PORT:-19092}:19092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health --exit-when-healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
   postgres:
     image: ${POSTGRES_IMAGE:-postgres:16-alpine}
     environment:
@@ -31,8 +59,14 @@ services:
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:-10}
       SPRING_DATASOURCE_HIKARI_AUTO_COMMIT: ${SPRING_DATASOURCE_HIKARI_AUTO_COMMIT:-true}
       SPRING_DATASOURCE_HIKARI_TRANSACTION_ISOLATION: ${SPRING_DATASOURCE_HIKARI_TRANSACTION_ISOLATION:-TRANSACTION_READ_COMMITTED}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-redpanda:9092}
+      SPRING_KAFKA_CONSUMER_GROUP_ID: ${SPRING_KAFKA_CONSUMER_GROUP_ID:-fraud-rule-engine-service}
       SPRING_FLYWAY_ENABLED: "true"
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      FRAUD_KAFKA_ENABLED: ${FRAUD_KAFKA_ENABLED:-true}
+      FRAUD_KAFKA_TRANSACTION_EVENTS_TOPIC: ${FRAUD_KAFKA_TRANSACTION_EVENTS_TOPIC:-transaction-events}
+      FRAUD_KAFKA_DEAD_LETTER_TOPIC: ${FRAUD_KAFKA_DEAD_LETTER_TOPIC:-transaction-events.dlq}
+      FRAUD_KAFKA_CONSUMER_GROUP: ${FRAUD_KAFKA_CONSUMER_GROUP:-fraud-rule-engine-service}
       FRAUD_SECURITY_JWT_ISSUER_URI: ${FRAUD_SECURITY_JWT_ISSUER_URI:-fraud-rule-engine-local}
       FRAUD_SECURITY_JWT_AUDIENCES: ${FRAUD_SECURITY_JWT_AUDIENCES:-fraud-rule-engine-service}
       FRAUD_SECURITY_JWT_JWK_SET_URI: ""
@@ -44,6 +78,8 @@ services:
     ports:
       - "${APP_HOST_PORT:-8080}:8080"
     depends_on:
+      redpanda:
+        condition: service_healthy
       postgres:
         condition: service_healthy
     healthcheck:

@@ -11,8 +11,15 @@ Estimate: 2 hours
 FraudRuleEngineService is one deployable Spring Boot application with clear internal package boundaries. This avoids distributed-system overhead during the submission while keeping the codebase organized enough to evolve later.
 
 ```text
-Client
+HTTP client
   -> api
+  -> application
+  -> domain and rules
+  -> infrastructure.persistence
+  -> PostgreSQL
+
+Kafka / Redpanda topic
+  -> infrastructure.messaging
   -> application
   -> domain and rules
   -> infrastructure.persistence
@@ -28,6 +35,7 @@ Client
 | `com.capitec.fraud.domain`                       | Framework-light fraud concepts, normalized transaction models, rule outcomes, and domain enums.                      |
 | `com.capitec.fraud.rules`                        | Code-first fraud rule implementations.                                                                               |
 | `com.capitec.fraud.infrastructure.persistence`   | JPA entities, repositories, Flyway-backed persistence integration, and database bootstrap support.                   |
+| `com.capitec.fraud.infrastructure.messaging`     | Kafka-compatible ingestion adapters, message validation, retry/DLQ wiring, and adapter metrics.                     |
 | `com.capitec.fraud.infrastructure.security`      | JWT Resource Server configuration and authorization rules.                                                           |
 | `com.capitec.fraud.infrastructure.observability` | Correlation-id propagation, logging support, metrics, health, and operational filters.                               |
 | `com.capitec.fraud.infrastructure.config`        | Configuration properties, OpenAPI setup, clock wiring, and runtime defaults.                                         |
@@ -37,6 +45,7 @@ Client
 - Controllers should stay thin and delegate business work to application services.
 - Domain and rule classes should not depend on Spring MVC or JPA where practical.
 - Persistence entities should not be returned directly as API DTOs.
+- Messaging consumers should stay adapters and call application use cases instead of duplicating fraud logic.
 - Database constraints should protect correctness where concurrent requests can race.
 - Rule evaluation should be deterministic and explainable.
 - Security and observability concerns should be explicit rather than hidden in controllers.
@@ -62,6 +71,18 @@ The outer use case catches database duplicate-key races only after the failed tr
 `TransactionEvaluationController` exposes the primary reviewer path `POST /api/v1/transactions/evaluate`, backed by the configurable `fraud.api.paths.transactions-evaluate` property. The earlier `fraud.api.paths.transaction-evaluations` path remains available for compatibility with the stable DTO contract.
 
 The controller accepts raw JSON so the payload can be sanitized and retained with expiry metadata before mapping into the domain model. Bean validation returns structured `400` responses, while duplicate event or transaction submissions flow through the idempotent use case and return the stored evaluation deterministically when available.
+
+## Kafka / Redpanda Event Stream Adapter
+
+`TransactionEventConsumer` provides an optional Kafka-compatible entry point for categorized transaction events. It is enabled with `fraud.kafka.enabled` and is wired for local Docker Compose through Redpanda. The consumer reads from the configured transaction-events topic, validates required headers, maps the JSON payload through `TransactionEventMapper`, and delegates to `TransactionEvaluationService`, which is implemented by `EvaluateTransactionUseCase`.
+
+The adapter deliberately contains no fraud rule logic. HTTP and Kafka ingestion both enter the same application use case, so idempotency, persistence, rule execution, alert creation, sanitized raw payload retention, and safe exception translation stay centralized.
+
+The event value uses the same request fields as `TransactionEvaluationRequest`. Required headers are configurable and default to `correlationId`, `eventId`, `eventType`, and `schemaVersion`. The default event type is `TransactionEvaluationRequested` and the default supported schema version is `1`.
+
+`FraudKafkaConfiguration` creates the transaction topic and dead-letter topic when Kafka is enabled. Validation failures such as missing headers, invalid JSON, unsupported event type, unsupported schema version, and header/payload event-id mismatch are marked non-retryable and are routed to the dead-letter topic. Other runtime failures use configured retry and backoff before dead-letter routing.
+
+Adapter metrics count consumed, evaluated, duplicate, failed, and dead-lettered events. Logs include correlation id and event id where available but do not log full payloads, JWTs, card data, raw account numbers, or authorization material.
 
 ## Fraud Retrieval APIs
 
@@ -107,7 +128,7 @@ Detailed operational endpoints such as info, metrics, and Prometheus are exposed
 
 The Dockerfile uses a Gradle build stage and a Java 17 runtime stage. The final image contains only the bootable application jar, runs as the non-root `fraud` user, exposes port `8080`, and checks `/actuator/health/readiness`.
 
-`docker-compose.yml` starts PostgreSQL and the application together. PostgreSQL readiness is checked with `pg_isready`; the application waits for that healthy dependency, receives database and local JWT verification settings through environment variables, and runs Flyway migrations on startup. The Compose runtime uses the bundled local development public key for reviewer tokens, while production deployments should override JWT settings to use a real issuer and JWKS or mounted public key.
+`docker-compose.yml` starts PostgreSQL, Redpanda, and the application together. PostgreSQL readiness is checked with `pg_isready`; Redpanda readiness is checked with `rpk cluster health`; the application waits for both healthy dependencies, receives database, Kafka, and local JWT verification settings through environment variables, and runs Flyway migrations on startup. The Compose runtime uses the bundled local development public key for reviewer tokens, while production deployments should override JWT settings to use a real issuer and JWKS or mounted public key.
 
 ## Code-First Rule Engine
 
@@ -173,9 +194,9 @@ Payload records also include `raw_payload_expires_at`. This keeps retention expl
 
 ## Future Extraction Path
 
-If Kafka ingestion, analyst workflow, or multi-tenant security becomes necessary later, those capabilities should be added as adapters or bounded modules around the same core use cases before considering service extraction.
+If analyst workflow, multi-tenant security, or richer event streaming becomes necessary later, those capabilities should be added as adapters or bounded modules around the same core use cases before considering service extraction.
 
-- Kafka should start as an ingestion adapter around `EvaluateTransactionUseCase`, reusing the existing idempotency table and adding retry, dead-letter, and optional outbox handling before any service split.
+- Kafka should evolve from the current ingestion adapter by adding Schema Registry, broker authentication, lag dashboards, and optional outbox-backed outcome publishing before any service split.
 - Analyst workflow should start by extending the alert aggregate with assignment, status transitions, comments, resolution reasons, and audit history while keeping evaluation immutable.
 - Multi-tenant security should start by adding tenant ownership to JWT claims, domain objects, persistence rows, repository filters, indexes, and security tests before considering physical tenant isolation.
 

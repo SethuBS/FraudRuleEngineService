@@ -6,7 +6,7 @@ FraudRuleEngineService is a Java 17 / Spring Boot service for evaluating categor
 
 ## Status
 
-The reviewer path is implemented: Docker Compose starts the service and PostgreSQL, Flyway creates the schema, local-only JWT scripts generate reviewer tokens, the main APIs are secured by scope, and the Gradle test suite includes unit, integration, API, security, idempotency, Flyway, and Docker-facing coverage.
+The reviewer path is implemented: Docker Compose starts the service, PostgreSQL, and the optional Redpanda event broker; Flyway creates the schema; local-only JWT scripts generate reviewer tokens; the main APIs are secured by scope; and the Gradle test suite includes unit, integration, API, security, idempotency, Flyway, Kafka adapter, and Docker-facing coverage.
 
 ## Reviewer Navigation
 
@@ -31,6 +31,7 @@ The primary reviewer workflow is:
 3. Submit `examples/high-risk-transaction.json` to `POST /api/v1/transactions/evaluate`.
 4. Retrieve the created alert with `GET /api/v1/fraud-alerts`.
 5. Retrieve the stored decision with `GET /api/v1/transactions/{transactionId}/fraud-evaluation`.
+6. Optionally publish `examples/kafka-high-risk-transaction-event.json` to Redpanda and confirm the same use case handles stream ingestion.
 
 ## Scope
 
@@ -41,12 +42,13 @@ Included:
 - PostgreSQL persistence for transactions, evaluations, alerts, and rule metadata.
 - JWT OAuth2 Resource Server security.
 - Docker-based local runtime.
+- Optional Kafka-compatible Redpanda ingestion adapter.
 - Tests, OpenAPI, observability, and reviewer documentation.
 
 Out of scope for the target submission:
 
 - Full analyst workflow.
-- Full Kafka ingestion implementation.
+- Production Kafka cluster operations, Schema Registry, and broker authentication.
 - Multi-tenant RBAC.
 - Notifications.
 - Machine learning models.
@@ -79,9 +81,11 @@ See [docs/architecture.md](docs/architecture.md) for package responsibilities an
 - PostgreSQL
 - Flyway
 - Spring Web, Validation, Data JPA, Actuator, Security, OAuth2 Resource Server
+- Spring Kafka
 - springdoc OpenAPI
 - JUnit 5, AssertJ, Testcontainers
 - OWASP Dependency-Check
+- Redpanda for local Kafka-compatible event streaming
 - Docker and Docker Compose
 
 ## Prerequisites
@@ -254,6 +258,17 @@ Fraud evaluation thresholds are runtime configuration, not domain constants. The
 | Raw payload retention duration               | `FRAUD_RAW_PAYLOAD_RETENTION_DURATION`                               | `P7D`                                                                                  |
 | Raw payload cleanup enabled                  | `FRAUD_RAW_PAYLOAD_CLEANUP_ENABLED`                                  | `true`                                                                                 |
 | Raw payload cleanup cron                     | `FRAUD_RAW_PAYLOAD_CLEANUP_CRON`                                     | `0 0 * * * *`                                                                          |
+| Kafka adapter enabled                        | `FRAUD_KAFKA_ENABLED`                                                | `false` locally, `true` in Docker Compose                                              |
+| Kafka bootstrap servers                      | `SPRING_KAFKA_BOOTSTRAP_SERVERS`                                     | `localhost:19092` locally, `redpanda:9092` in Docker Compose                           |
+| Kafka transaction events topic               | `FRAUD_KAFKA_TRANSACTION_EVENTS_TOPIC`                               | `transaction-events`                                                                   |
+| Kafka dead-letter topic                      | `FRAUD_KAFKA_DEAD_LETTER_TOPIC`                                      | `transaction-events.dlq`                                                               |
+| Kafka consumer group                         | `FRAUD_KAFKA_CONSUMER_GROUP`                                         | `fraud-rule-engine-service`                                                           |
+| Kafka expected event type                    | `FRAUD_KAFKA_EXPECTED_EVENT_TYPE`                                    | `TransactionEvaluationRequested`                                                       |
+| Kafka supported schema version               | `FRAUD_KAFKA_SUPPORTED_SCHEMA_VERSION`                               | `1`                                                                                    |
+| Kafka retry max attempts                     | `FRAUD_KAFKA_RETRY_MAX_ATTEMPTS`                                     | `3`                                                                                    |
+| Kafka retry backoff                          | `FRAUD_KAFKA_RETRY_BACKOFF`                                          | `PT2S`                                                                                 |
+| Docker Redpanda image                        | `REDPANDA_IMAGE`                                                     | `redpandadata/redpanda:v26.1.11`                                                       |
+| Docker Redpanda host port                    | `REDPANDA_HOST_PORT`                                                 | `19092`                                                                                |
 | Docker PostgreSQL image                      | `POSTGRES_IMAGE`                                                     | `postgres:16-alpine`                                                                   |
 | Docker PostgreSQL database                   | `POSTGRES_DB`                                                        | `fraud_rule_engine`                                                                    |
 | Docker PostgreSQL user                       | `POSTGRES_USER`                                                      | `fraud`                                                                                |
@@ -279,7 +294,7 @@ Start the local reviewer runtime:
 docker compose up --build
 ```
 
-Docker Compose starts PostgreSQL first, waits for `pg_isready`, then starts the service with database and local JWT validation environment variables. Flyway migrations run automatically on application startup. Optional Compose defaults are shown in [.env.example](.env.example); real `.env` files are ignored by Git.
+Docker Compose starts PostgreSQL and Redpanda first, waits for `pg_isready` and the Redpanda health check, then starts the service with database, Kafka, and local JWT validation environment variables. Flyway migrations run automatically on application startup. Optional Compose defaults are shown in [.env.example](.env.example); real `.env` files are ignored by Git.
 
 Health checks:
 
@@ -310,6 +325,59 @@ Stop the runtime:
 
 ```bash
 docker compose down
+```
+
+## Kafka / Redpanda Event Stream Adapter
+
+The Kafka-compatible adapter is optional and disabled by default for HTTP-only local runs. Docker Compose enables it with `FRAUD_KAFKA_ENABLED=true` and starts Redpanda beside PostgreSQL. The consumer is an infrastructure adapter: it validates and maps the message, then calls the existing `EvaluateTransactionUseCase` through `TransactionEvaluationService`. It does not duplicate fraud rule logic.
+
+Local topics:
+
+- Transaction events: `transaction-events`
+- Dead-letter topic: `transaction-events.dlq`
+- Consumer group: `fraud-rule-engine-service`
+
+Required event headers:
+
+- `correlationId`
+- `eventId`
+- `eventType`, default `TransactionEvaluationRequested`
+- `schemaVersion`, default `1`
+
+The message value uses the same JSON contract as `TransactionEvaluationRequest`, so the HTTP API and Kafka adapter share the same stable input shape. Invalid messages, unsupported event types, unsupported schema versions, and header/payload event-id mismatches are treated as non-retryable validation failures and routed to the dead-letter topic by the Kafka error handler. Other processing failures use the configured retry/backoff settings before dead-letter routing. Duplicate messages reuse the existing idempotency path and PostgreSQL unique constraints, so retries and repeated broker delivery do not create duplicate evaluations.
+
+Publish a sample event from PowerShell:
+
+```powershell
+(Get-Content .\examples\kafka-high-risk-transaction-event.json -Raw |
+  ConvertFrom-Json |
+  ConvertTo-Json -Compress) |
+  docker compose exec -T redpanda rpk topic produce transaction-events `
+    -k event-kafka-high-risk-1 `
+    -z none `
+    -H correlationId:kafka-demo-1 `
+    -H eventId:event-kafka-high-risk-1 `
+    -H eventType:TransactionEvaluationRequested `
+    -H schemaVersion:1
+```
+
+Publish the same sample from Bash:
+
+```bash
+{ tr -d '\r\n' < examples/kafka-high-risk-transaction-event.json; printf '\n'; } |
+  docker compose exec -T redpanda rpk topic produce transaction-events \
+    -k event-kafka-high-risk-1 \
+    -z none \
+    -H correlationId:kafka-demo-1 \
+    -H eventId:event-kafka-high-risk-1 \
+    -H eventType:TransactionEvaluationRequested \
+    -H schemaVersion:1
+```
+
+Inspect the dead-letter topic if a message is rejected:
+
+```bash
+docker compose exec redpanda rpk topic consume transaction-events.dlq --num 1
 ```
 
 ## Database
@@ -1024,13 +1092,13 @@ echo "Curl collection suite passed."
 - Idempotency uses an application pre-check for the normal duplicate path and PostgreSQL unique constraints for concurrent races. That keeps the response deterministic without pretending the pre-check alone is enough.
 - Sanitized raw payload retention helps local debugging and audit review, but payloads expire and sensitive fields are redacted before storage.
 - Local JWT generation is deliberately reviewer-friendly and local-only. Production token issuing remains the responsibility of an external identity provider.
-- REST is the v1 ingestion adapter; Kafka can be added later around the same application service.
+- REST and Kafka are separate adapters around the same evaluation use case, which keeps business rules in one place.
 
 ## Known Limitations
 
 - The implemented rules are deterministic assessment examples, not a complete banking fraud strategy.
 - The service does not include a full analyst case-management workflow for assigning, commenting on, or closing alerts.
-- Kafka ingestion is intentionally out of scope; transaction events are submitted through REST.
+- The Kafka adapter is intentionally lightweight: it does not include Schema Registry, SASL/TLS broker authentication, or downstream outcome publishing.
 - Production identity-provider setup is out of scope. The app validates JWTs, but production token issuance must come from an external IdP.
 - There is no tenant model or fine-grained customer/account authorization beyond configured JWT scopes.
 - Raw payload retention cleanup removes expired payload snapshots, but database archiving and long-term cold storage policies are not implemented.
@@ -1039,7 +1107,7 @@ echo "Curl collection suite passed."
 
 ## Future Improvements
 
-- Add Kafka or another event-stream adapter around the existing evaluation use case.
+- Add Schema Registry, broker authentication, and an outbox-backed decision-result publisher for the Kafka path.
 - Add analyst workflow APIs for alert assignment, status transitions, comments, and audit history.
 - Integrate with a real identity provider and JWKS endpoint in a deployment environment.
 - Add richer customer profile context, such as home country and historical behaviour windows sourced from dedicated profile data.

@@ -1,0 +1,15 @@
+{
+  "eventId": "event-kafka-high-risk-1",
+  "transactionId": "tx-kafka-high-risk-1",
+  "customerId": "customer-kafka-1",
+  "accountId": "account-kafka-1",
+  "amount": 15000.00,
+  "currency": "ZAR",
+  "transactionTimestamp": "2026-06-10T08:30:00Z",
+  "merchantCategory": "JEWELRY",
+  "country": "US",
+  "channel": "MOBILE",
+  "merchantId": "MERCHANT-WATCHLIST",
+  "merchantName": "High Risk Traders",
+  "deviceId": "device-kafka-1"
+}
