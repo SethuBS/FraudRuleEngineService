@@ -1,6 +1,6 @@
 services:
   redpanda:
-    image: ${REDPANDA_IMAGE:-redpandadata/redpanda:v26.1.11}
+    image: ${REDPANDA_IMAGE:-redpandadata/redpanda:v26.1.12}
     command:
       - redpanda
       - start
