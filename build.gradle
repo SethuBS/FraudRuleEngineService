@@ -95,7 +95,7 @@ dependencies {
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-    runtimeOnly 'org.postgresql:postgresql:42.7.12'
+    runtimeOnly 'org.postgresql:postgresql:42.7.13'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
